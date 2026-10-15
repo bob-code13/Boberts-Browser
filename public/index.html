@@ -1,64 +1,42 @@
 <!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-		/>
-		<title>Bobert's Browser</title>
-
-		<link rel="shortcut icon" content="favicon.webp" />
-	
-		<script src="/scram/scramjet.all.js"></script>
-		<script src="/baremux/index.js"></script>
-		
-		<link rel="stylesheet" href="index.css" />
-		<script src="register-sw.js" defer></script>
-		<script src="search.js" defer></script>
-		<script src="index.js" defer></script>
-	</head>
-
-	<body>
-		<div title="Bobert\'s Browser" class="flex-center logo-wrapper header-center">
-			<img class="logo" src="sj.png" alt="Scramjet" />
-			<h1>Bobert's Browser</h1>
-		</div>
-		<div class="flex-center desc left-margin">
-			<p>
-				Browse the web with Bobert's Browser, powered by Scramjet.
-			</p>
-		</div>
-
-		<form id="sj-form" class="flex-center">
-			<input
-				id="sj-search-engine"
-				value="https://www.google.com/search?q=%s"
-				type="hidden"
-			/>
-			<input id="sj-address" type="text" placeholder="Search the web freely" />
-		</form>
-		<div class="desc left-margin">
-			<p id="sj-error"></p>
-			<pre id="sj-error-code"></pre>
-		</div>
-		<footer>
-			<div>
-				<a
-					title="The Mercury Workshop GitHub organization"
-					href="https://github.com/MercuryWorkshop"
-					>Mercury Workshop</a
-				>
-				<a
-					title="The example demo app for Scramjet"
-					href="https://github.com/MercuryWorkshop/Scramjet-Demo"
-					>GitHub</a
-				>
-				<a title="License information" href="credits.html">Credits</a>
-			</div>
-			<div>
-				<span>Scramjet &copy; MW 2025</span>
-			</div>
-		</footer>
-	</body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b16" />
+  <title>Bobert's Browser</title>
+  <link rel="icon" href="/favicon.ico" />
+  <script src="/scram/scramjet.all.js"></script>
+  <script src="/baremux/index.js"></script>
+  <link rel="stylesheet" href="/index.css" />
+  <script src="/register-sw.js" defer></script>
+  <script src="/search.js" defer></script>
+  <script src="/index.js" defer></script>
+</head>
+<body>
+  <main class="homepage">
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <section class="hero" aria-label="Bobert's Browser home">
+      <div class="eyebrow"><span class="status-dot"></span> YOUR WEB, YOUR WAY</div>
+      <h1 class="wordmark">Bobert's <span>Browser</span></h1>
+      <p class="tagline">A better place to explore the web.</p>
+      <form id="sj-form" class="search-box">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        <input id="sj-search-engine" value="https://www.google.com/search?q=%s" type="hidden" />
+        <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search anything or enter a URL..." autocomplete="off" spellcheck="false" />
+        <button type="submit" aria-label="Go">Go <span aria-hidden="true">↗</span></button>
+      </form>
+      <div class="error-container" aria-live="polite">
+        <p id="sj-error"></p>
+        <pre id="sj-error-code"></pre>
+      </div>
+      <p class="hint">The internet is one search away.</p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <span>© 2026 Bobert's Enterprise. All rights reserved.</span>
+    <a href="/credits.html" aria-label="Open source licenses">Open-source licenses</a>
+  </footer>
+</body>
 </html>
