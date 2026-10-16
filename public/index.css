@@ -155,3 +155,17 @@ body { background: #fff; }
 .tab-home .search-box button { background: transparent; color: #5f6368; }
 .tab-home .search-box button:hover { background: #f1f3f4; }
 @media (max-width: 600px) { .tab-home-inner { margin-top: 80px; } .tab-home .wordmark { font-size: clamp(2rem, 7vw, 3.1rem); margin-bottom: 28px; } }
+
+/* New-tab footer was previously hidden with the original landing page. */
+.tab-home { position: absolute; }
+.tab-home-footer { position: absolute; bottom: 0; left: 0; right: 0; min-height: 55px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px clamp(20px, 4.5vw, 68px); border-top: 1px solid #edf0f3; color: #70757a; font: 12px Arial, sans-serif; }
+.tab-home-footer a { color: #70757a; text-decoration: none; }
+.tab-home-footer a:hover { text-decoration: underline; }
+/* Remove the exposed gutters beside the navigation controls. */
+.browser-chrome { padding-left: 0; padding-right: 0; column-gap: 0; }
+.tab-strip { padding-left: 12px; }
+.new-tab { margin-right: 10px; }
+.navigation-bar { gap: 0; width: 100%; }
+.navigation-bar > .chrome-button { width: 44px; height: 43px; margin: 0 5px 0 8px; border-radius: 11px; }
+.tab-address-form { margin-right: 8px; }
+@media (max-width: 600px) { .tab-home-footer { flex-direction: column; justify-content: center; gap: 5px; text-align: center; padding: 9px 12px; } .tab-strip { padding-left: 7px; } .navigation-bar > .chrome-button { margin-left: 5px; margin-right: 4px; } .tab-address-form { margin-right: 5px; } }
