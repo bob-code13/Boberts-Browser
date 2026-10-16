@@ -28,34 +28,34 @@
   <div id="tab-frames" class="tab-frames" hidden></div>
   <main class="homepage">
     <section class="hero" aria-label="Bobert's Browser home">
-      <div class="brand-label">BOBERT’S ENTERPRISE <span class="brand-divider">/</span> BROWSER</div>
-      <h1 class="wordmark">Bobert's <span>Browser</span></h1>
-      <p class="tagline">Where to?</p>
+      
+      <h1 class="wordmark"><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></h1>
+      
       <form id="sj-form" class="search-box">
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
         <input id="sj-search-engine" value="https://duckduckgo.com/?q=%s" type="hidden" />
-        <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search anything or enter a URL..." autocomplete="off" spellcheck="false" />
-        <button type="submit" aria-label="Go">Go <span aria-hidden="true">↗</span></button>
+        <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
+        <button type="submit" aria-label="Go">↵</button>
       </form>
       <div class="error-container" aria-live="polite">
         <p id="sj-error"></p>
         <pre id="sj-error-code"></pre>
       </div>
-      <p class="hint">Search with DuckDuckGo or enter a website address.</p>
+      
     </section>
   </main>
   <template id="new-tab-template">
     <section class="tab-home" aria-label="New tab homepage">
       <div class="tab-home-inner">
-        <div class="brand-label">BOBERT’S ENTERPRISE <span class="brand-divider">/</span> BROWSER</div>
-        <h2 class="wordmark">Bobert’s <span>Browser</span></h2>
-        <p class="tagline">Where to?</p>
+        
+        <h1 class="wordmark"><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></h1>
+        
         <form class="search-box tab-home-form">
           <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-          <input class="tab-home-input" type="text" aria-label="Search or enter URL" placeholder="Search or enter a website..." autocomplete="off" spellcheck="false" />
-          <button type="submit">Go ↗</button>
+          <input class="tab-home-input" type="text" aria-label="Search or enter URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
+          <button type="submit" aria-label="Search">↵</button>
         </form>
-        <p class="hint">Search with DuckDuckGo or enter a website address.</p>
+        
       </div>
     </section>
   </template>
