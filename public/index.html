@@ -14,6 +14,18 @@
   <script src="/index.js" defer></script>
 </head>
 <body>
+  <header id="browser-chrome" class="browser-chrome" hidden>
+    <div id="tab-strip" class="tab-strip" role="tablist" aria-label="Browser tabs"></div>
+    <button id="new-tab" class="chrome-button new-tab" type="button" title="New tab" aria-label="New tab">+</button>
+    <div class="navigation-bar">
+      <button id="home-button" class="chrome-button" type="button" title="New tab home" aria-label="New tab home">⌂</button>
+      <form id="tab-address-form" class="tab-address-form">
+        <input id="tab-address" type="text" aria-label="Search or enter URL in current tab" placeholder="Search DuckDuckGo or enter a URL" autocomplete="off" spellcheck="false" />
+        <button type="submit" aria-label="Navigate">Go ↗</button>
+      </form>
+    </div>
+  </header>
+  <div id="tab-frames" class="tab-frames" hidden></div>
   <main class="homepage">
     <div class="ambient ambient-one" aria-hidden="true"></div>
     <div class="ambient ambient-two" aria-hidden="true"></div>
