@@ -72,6 +72,7 @@ function renderTabs() {
     wrapper.append(select, close);
     tabStrip.append(wrapper);
     if (tab.frame) tab.frame.frame.hidden = tab.id !== activeTabId;
+    if (tab.home) tab.home.hidden = tab.id !== activeTabId || Boolean(tab.frame);
   }
   const active = tabs.find((tab) => tab.id === activeTabId);
   tabAddress.value = active ? active.url : "";
@@ -84,11 +85,20 @@ function activateTab(id) {
 }
 
 function createTab(url = "") {
-  const tab = { id: nextTabId++, url: "", title: "New Tab", frame: null };
+  const tab = { id: nextTabId++, url: "", title: "New Tab", frame: null, home: null, navigationId: 0 };
+  const home = document.getElementById("new-tab-template").content.firstElementChild.cloneNode(true);
+  const homeForm = home.querySelector(".tab-home-form");
+  const homeInput = home.querySelector(".tab-home-input");
+  homeForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (homeInput.value.trim()) void navigateTab(tab, homeInput.value);
+  });
+  tab.home = home;
+  tabFrames.appendChild(home);
   tabs.push(tab);
   activateTab(tab.id);
   if (url) void navigateTab(tab, url);
-  else tabAddress.focus();
+  else homeInput.focus();
   return tab;
 }
 
@@ -96,7 +106,9 @@ function closeTab(id) {
   const index = tabs.findIndex((tab) => tab.id === id);
   if (index < 0) return;
   const tab = tabs[index];
+  tab.navigationId++;
   if (tab.frame) tab.frame.frame.remove();
+  if (tab.home) tab.home.remove();
   tabs.splice(index, 1);
   if (activeTabId === id) {
     activeTabId = tabs[Math.min(index, tabs.length - 1)]?.id ?? null;
@@ -107,6 +119,7 @@ function closeTab(id) {
 async function navigateTab(tab, input) {
   if (!input.trim()) return;
   const url = search(input.trim(), searchEngine.value);
+  const navigationId = ++tab.navigationId;
   tab.url = url;
   try {
     tab.title = new URL(url).hostname || "New Tab";
@@ -117,13 +130,14 @@ async function navigateTab(tab, input) {
   try {
     await ensureReady();
     // A closed tab must not resurrect itself after async initialization.
-    if (!tabs.includes(tab)) return;
+    if (!tabs.includes(tab) || navigationId !== tab.navigationId) return;
     if (!tab.frame) {
       tab.frame = scramjet.createFrame();
       tab.frame.frame.classList.add("browser-page");
       tabFrames.appendChild(tab.frame.frame);
     }
     tab.frame.frame.hidden = tab.id !== activeTabId;
+    if (tab.home) tab.home.hidden = true;
     tab.frame.go(url);
   } catch (err) {
     error.textContent = "Unable to open website.";
@@ -146,7 +160,18 @@ tabAddressForm.addEventListener("submit", (event) => {
   if (tab) void navigateTab(tab, tabAddress.value);
 });
 newTabButton.addEventListener("click", () => createTab());
-homeButton.addEventListener("click", () => createTab());
+homeButton.addEventListener("click", () => {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (!tab) return;
+  tab.navigationId++;
+  if (tab.frame) { tab.frame.frame.remove(); tab.frame = null; }
+  tab.url = "";
+  tab.title = "New Tab";
+  tab.home.hidden = false;
+  tab.home.querySelector(".tab-home-input").value = "";
+  renderTabs();
+  tab.home.querySelector(".tab-home-input").focus();
+});
 document.addEventListener("keydown", (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "t") {
     event.preventDefault();
