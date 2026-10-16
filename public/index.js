@@ -184,4 +184,5 @@ document.addEventListener("keydown", (event) => {
     closeTab(activeTabId);
   }
 });
-// Open directly into the browser shell so tabs and address bar are always visible.\ncreateTab();\n
+// Open directly into the browser shell so tabs and address bar are always visible.
+createTab();
