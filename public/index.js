@@ -47,9 +47,9 @@ function ensureReady() {
 
 function renderTabs() {
   const hasTabs = tabs.length > 0;
-  document.body.classList.toggle("tabs-open", hasTabs);
-  chrome.hidden = !hasTabs;
-  tabFrames.hidden = !hasTabs;
+  document.body.classList.add("tabs-open");
+  chrome.hidden = false;
+  tabFrames.hidden = false;
   tabStrip.replaceChildren();
 
   for (const tab of tabs) {
@@ -113,7 +113,8 @@ function closeTab(id) {
   if (activeTabId === id) {
     activeTabId = tabs[Math.min(index, tabs.length - 1)]?.id ?? null;
   }
-  renderTabs();
+  if (!tabs.length) createTab();
+  else renderTabs();
 }
 
 async function navigateTab(tab, input) {
@@ -152,7 +153,8 @@ async function navigateTab(tab, input) {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (address.value.trim()) createTab(address.value);
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (tab && address.value.trim()) void navigateTab(tab, address.value);
 });
 tabAddressForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -182,3 +184,5 @@ document.addEventListener("keydown", (event) => {
     closeTab(activeTabId);
   }
 });
+// Open directly into the browser shell so tabs and address bar are always visible.
+createTab();
