@@ -71,17 +71,27 @@ function renderBookmarks() {
 }
 function renderNavigationControls() {
   const tab = tabs.find((item) => item.id === activeTabId);
-  backButton.disabled = !tab || tab.historyIndex <= 0;
-  forwardButton.disabled = !tab || tab.historyIndex >= tab.history.length - 1;
+  // The embedded browser maintains its own history, including clicked links.
+  // History length does not expose the current index, so buttons remain available
+  // while a page is open; the browser ignores navigation past either end.
+  const hasPage = Boolean(tab && tab.frame);
+  backButton.disabled = !hasPage;
+  forwardButton.disabled = !hasPage;
   reloadButton.disabled = !tab || !tab.url;
   bookmarkButton.disabled = !tab || !tab.url;
   bookmarkButton.textContent = tab && bookmarks.some((item) => item.url === tab.url) ? "★" : "☆";
 }
 function navigateHistory(tab, offset) {
-  const next = tab.historyIndex + offset;
-  if (next < 0 || next >= tab.history.length) return;
-  tab.historyIndex = next;
-  void navigateTab(tab, tab.history[next], false);
+  if (!tab.frame) return;
+  try {
+    const frameWindow = tab.frame.frame.contentWindow;
+    if (!frameWindow) return;
+    // Use the iframe's actual session history so in-page links, redirects and
+    // pushState entries participate, rather than replaying address-bar URLs.
+    frameWindow.history.go(offset);
+  } catch (err) {
+    console.warn("Unable to navigate embedded page history", err);
+  }
 }
 
 
@@ -218,6 +228,7 @@ async function navigateTab(tab, input, addHistory = true) {
     tab.frame.frame.hidden = tab.id !== activeTabId;
     if (tab.home) tab.home.hidden = true;
     tab.frame.go(url);
+    renderNavigationControls();
   } catch (err) {
     error.textContent = "Unable to open website.";
     errorCode.textContent = String(err);
