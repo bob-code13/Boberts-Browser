@@ -6,12 +6,35 @@
   <meta name="theme-color" content="#090b16" />
   <title>Bobert's Browser</title>
   <link rel="icon" href="/favicon.ico" />
-  <script src="/scram/scramjet.all.js"></script>
-  <script src="/baremux/index.js"></script>
+  <script>
+    window.bobertStartupError = function(message) {
+      var status = document.getElementById("startup-status");
+      if (status) {
+        status.textContent = "Bobert's Browser could not start: " + message + " Try reloading. If this is a managed Chromebook, scripts may be restricted.";
+        status.hidden = false;
+      } else {
+        window.bobertPendingError = message;
+      }
+    };
+    window.addEventListener("error", function(event) {
+      if (event.target && event.target.tagName === "SCRIPT") return;
+      window.bobertStartupError(event.message || "A script failed to run.");
+    });
+    window.addEventListener("DOMContentLoaded", function() {
+      if (window.bobertPendingError) window.bobertStartupError(window.bobertPendingError);
+      window.setTimeout(function() {
+        if (!document.body.classList.contains("tabs-open")) {
+          window.bobertStartupError("Browser tabs did not initialize. The JavaScript may be blocked or outdated.");
+        }
+      }, 1800);
+    });
+  </script>
+  <script src="/scram/scramjet.all.js" onerror="window.bobertStartupError && window.bobertStartupError('Scramjet library could not load.')"></script>
+  <script src="/baremux/index.js" onerror="window.bobertStartupError && window.bobertStartupError('BareMux library could not load.')"></script>
   <link rel="stylesheet" href="/index.css" />
-  <script src="/register-sw.js" defer></script>
-  <script src="/search.js" defer></script>
-  <script src="/index.js" defer></script>
+  <script src="/register-sw.js?v=chromebook1" defer onerror="window.bobertStartupError && window.bobertStartupError('Service worker registration script could not load.')"></script>
+  <script src="/search.js?v=chromebook1" defer onerror="window.bobertStartupError && window.bobertStartupError('Search script could not load.')"></script>
+  <script src="/index.js?v=chromebook1" defer onerror="window.bobertStartupError && window.bobertStartupError('Browser application script could not load.')"></script>
 </head>
 <body>
   <header id="browser-chrome" class="browser-chrome" hidden>
@@ -26,12 +49,13 @@
     </div>
   </header>
   <div id="tab-frames" class="tab-frames" hidden></div>
+  <div id="startup-status" class="startup-status" role="alert" hidden></div>
   <main class="homepage">
     <section class="hero" aria-label="Bobert's Browser home">
       
       <h1 class="wordmark"><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></h1>
       
-      <form id="sj-form" class="search-box">
+      <form id="sj-form" class="search-box" onsubmit="if (!document.body.classList.contains('tabs-open')) { event.preventDefault(); window.bobertStartupError('Search is unavailable because browser tabs did not initialize.'); return false; }">
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
         <input id="sj-search-engine" value="https://duckduckgo.com/?q=%s" type="hidden" />
         <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
