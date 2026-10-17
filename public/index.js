@@ -149,6 +149,7 @@ function renderTabs() {
   const active = tabs.find((tab) => tab.id === activeTabId);
   tabAddress.value = active ? active.url : "";
   document.title = active ? active.title + " — Bobert's Browser" : "Bobert's Browser";
+  renderNavigationControls();
 }
 
 function activateTab(id) {
