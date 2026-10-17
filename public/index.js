@@ -5,7 +5,7 @@ const address = document.getElementById("sj-address");
 const searchEngine = document.getElementById("sj-search-engine");
 const error = document.getElementById("sj-error");
 const errorCode = document.getElementById("sj-error-code");
-const chrome = document.getElementById("browser-chrome");
+const browserChrome = document.getElementById("browser-chrome");
 const tabStrip = document.getElementById("tab-strip");
 const newTabButton = document.getElementById("new-tab");
 const homeButton = document.getElementById("home-button");
@@ -48,7 +48,7 @@ function ensureReady() {
 function renderTabs() {
   const hasTabs = tabs.length > 0;
   document.body.classList.add("tabs-open");
-  chrome.hidden = false;
+  browserChrome.hidden = false;
   tabFrames.hidden = false;
   tabStrip.replaceChildren();
 
