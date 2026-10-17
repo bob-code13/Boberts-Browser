@@ -2,7 +2,7 @@ name: Publish Bobert's Browser to GHCR
 
 on:
   push:
-    branches: [main, boberts-browser-azure]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
