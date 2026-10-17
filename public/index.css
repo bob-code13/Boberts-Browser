@@ -192,3 +192,7 @@ body { background: #fff; }
   .navigation-bar > .bookmarks-toggle::before { content: "★"; font-size: 18px; }
   .tab-address-form { margin-left: 2px; margin-right: 2px; }
 }
+
+/* Bobert's Browser branding in the navigation toolbar. */
+.toolbar-brand-logo { display: block; flex: 0 0 30px; width: 30px; height: 30px; object-fit: contain; margin: 0 6px 0 12px; }
+@media (max-width: 600px) { .toolbar-brand-logo { flex-basis: 24px; width: 24px; height: 24px; margin: 0 3px 0 5px; } }
