@@ -169,3 +169,26 @@ body { background: #fff; }
 .navigation-bar > .chrome-button { width: 44px; height: 43px; margin: 0 5px 0 8px; border-radius: 11px; }
 .tab-address-form { margin-right: 8px; }
 @media (max-width: 600px) { .tab-home-footer { flex-direction: column; justify-content: center; gap: 5px; text-align: center; padding: 9px 12px; } .tab-strip { padding-left: 7px; } .navigation-bar > .chrome-button { margin-left: 5px; margin-right: 4px; } .tab-address-form { margin-right: 5px; } }
+
+/* Navigation and bookmarks: Chrome-style toolbar. */
+.navigation-bar > .chrome-button { font: 22px Arial, sans-serif; width: 36px; height: 38px; margin: 0 2px; border-radius: 9px; }
+.navigation-bar > .chrome-button:first-child { margin-left: 8px; }
+.navigation-bar > .chrome-button:disabled { opacity: .38; cursor: default; }
+.navigation-bar > .chrome-button:disabled:hover { background: #d1dcf0; }
+.navigation-bar > .bookmarks-toggle { width: auto; min-width: 88px; padding: 0 9px; font-size: 12px; margin-right: 8px; }
+.tab-address-form { margin-left: 5px; margin-right: 5px; }
+.bookmarks-panel { position: fixed; right: 8px; top: 111px; width: min(350px, calc(100vw - 16px)); max-height: min(65vh, 550px); overflow-y: auto; z-index: 250; background: white; border: 1px solid #dfe3e9; border-radius: 0 0 12px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.16); padding: 14px; font: 13px Arial, sans-serif; color: #202124; }
+.bookmarks-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.bookmarks-heading button, .bookmark-remove { border: 0; background: transparent; cursor: pointer; color: #5f6368; font-size: 20px; }
+.bookmark-row { display: flex; align-items: center; gap: 6px; border-radius: 7px; }
+.bookmark-row:hover { background: #f1f3f4; }
+.bookmark-open { min-width: 0; flex: 1; padding: 10px 7px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; background: transparent; border: 0; color: #202124; cursor: pointer; }
+.bookmark-remove { padding: 5px 10px; }
+.bookmarks-empty { color: #70757a; line-height: 1.5; }
+@media (max-width: 600px) {
+  .navigation-bar > .chrome-button { width: 28px; font-size: 18px; margin: 0 1px; }
+  .navigation-bar > .chrome-button:first-child { margin-left: 3px; }
+  .navigation-bar > .bookmarks-toggle { min-width: 0; width: 32px; overflow: hidden; font-size: 0; padding: 0; margin-right: 3px; }
+  .navigation-bar > .bookmarks-toggle::before { content: "★"; font-size: 18px; }
+  .tab-address-form { margin-left: 2px; margin-right: 2px; }
+}
