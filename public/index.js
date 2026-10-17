@@ -12,6 +12,88 @@ const homeButton = document.getElementById("home-button");
 const tabAddressForm = document.getElementById("tab-address-form");
 const tabAddress = document.getElementById("tab-address");
 const tabFrames = document.getElementById("tab-frames");
+const backButton = document.getElementById("back-button");
+const forwardButton = document.getElementById("forward-button");
+const reloadButton = document.getElementById("reload-button");
+const bookmarkButton = document.getElementById("bookmark-button");
+const bookmarksToggle = document.getElementById("bookmarks-toggle");
+const bookmarksPanel = document.getElementById("bookmarks-panel");
+const bookmarksClose = document.getElementById("bookmarks-close");
+const bookmarksList = document.getElementById("bookmarks-list");
+const bookmarksKey = "boberts-browser-bookmarks-v1";
+let bookmarks = [];
+try {
+  const stored = JSON.parse(localStorage.getItem(bookmarksKey) || "[]");
+  if (Array.isArray(stored)) bookmarks = stored.filter((item) => item && typeof item.url === "string" && typeof item.title === "string").slice(0, 250);
+} catch (err) {
+  console.warn("Bookmarks storage unavailable", err);
+}
+function saveBookmarks() {
+  try { localStorage.setItem(bookmarksKey, JSON.stringify(bookmarks)); }
+  catch (err) { console.warn("Could not save bookmarks", err); alert("Bookmarks could not be saved on this device."); }
+}
+function renderBookmarks() {
+  bookmarksList.replaceChildren();
+  if (!bookmarks.length) {
+    const empty = document.createElement("p");
+    empty.className = "bookmarks-empty";
+    empty.textContent = "No bookmarks yet. Open a website and click the star.";
+    bookmarksList.append(empty);
+  }
+  for (const item of bookmarks) {
+    const row = document.createElement("div");
+    row.className = "bookmark-row";
+    const open = document.createElement("button");
+    open.type = "button";
+    open.className = "bookmark-open";
+    open.textContent = item.title;
+    open.title = item.url;
+    open.addEventListener("click", () => {
+      const tab = tabs.find((candidate) => candidate.id === activeTabId);
+      if (tab) void navigateTab(tab, item.url);
+      bookmarksPanel.hidden = true;
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "bookmark-remove";
+    remove.textContent = "×";
+    remove.title = "Remove bookmark";
+    remove.setAttribute("aria-label", "Remove " + item.title);
+    remove.addEventListener("click", () => {
+      bookmarks = bookmarks.filter((entry) => entry.url !== item.url);
+      saveBookmarks();
+      renderBookmarks();
+      renderNavigationControls();
+    });
+    row.append(open, remove);
+    bookmarksList.append(row);
+  }
+}
+function renderNavigationControls() {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  // The embedded browser maintains its own history, including clicked links.
+  // History length does not expose the current index, so buttons remain available
+  // while a page is open; the browser ignores navigation past either end.
+  const hasPage = Boolean(tab && tab.frame);
+  backButton.disabled = !hasPage;
+  forwardButton.disabled = !hasPage;
+  reloadButton.disabled = !tab || !tab.url;
+  bookmarkButton.disabled = !tab || !tab.url;
+  bookmarkButton.textContent = tab && bookmarks.some((item) => item.url === tab.url) ? "★" : "☆";
+}
+function navigateHistory(tab, offset) {
+  if (!tab.frame) return;
+  try {
+    const frameWindow = tab.frame.frame.contentWindow;
+    if (!frameWindow) return;
+    // Use the iframe's actual session history so in-page links, redirects and
+    // pushState entries participate, rather than replaying address-bar URLs.
+    frameWindow.history.go(offset);
+  } catch (err) {
+    console.warn("Unable to navigate embedded page history", err);
+  }
+}
+
 
 const { ScramjetController } = $scramjetLoadController();
 const scramjet = new ScramjetController({
@@ -77,6 +159,7 @@ function renderTabs() {
   const active = tabs.find((tab) => tab.id === activeTabId);
   tabAddress.value = active ? active.url : "";
   document.title = active ? active.title + " — Bobert's Browser" : "Bobert's Browser";
+  renderNavigationControls();
 }
 
 function activateTab(id) {
@@ -85,7 +168,7 @@ function activateTab(id) {
 }
 
 function createTab(url = "") {
-  const tab = { id: nextTabId++, url: "", title: "New Tab", frame: null, home: null, navigationId: 0 };
+  const tab = { id: nextTabId++, url: "", title: "New Tab", frame: null, home: null, navigationId: 0, history: [], historyIndex: -1 };
   const home = document.getElementById("new-tab-template").content.firstElementChild.cloneNode(true);
   const homeForm = home.querySelector(".tab-home-form");
   const homeInput = home.querySelector(".tab-home-input");
@@ -117,10 +200,15 @@ function closeTab(id) {
   else renderTabs();
 }
 
-async function navigateTab(tab, input) {
+async function navigateTab(tab, input, addHistory = true) {
   if (!input.trim()) return;
   const url = search(input.trim(), searchEngine.value);
   const navigationId = ++tab.navigationId;
+  if (addHistory && tab.history[tab.historyIndex] !== url) {
+    tab.history = tab.history.slice(0, tab.historyIndex + 1);
+    tab.history.push(url);
+    tab.historyIndex = tab.history.length - 1;
+  }
   tab.url = url;
   try {
     tab.title = new URL(url).hostname || "New Tab";
@@ -140,6 +228,7 @@ async function navigateTab(tab, input) {
     tab.frame.frame.hidden = tab.id !== activeTabId;
     if (tab.home) tab.home.hidden = true;
     tab.frame.go(url);
+    renderNavigationControls();
   } catch (err) {
     error.textContent = "Unable to open website.";
     errorCode.textContent = String(err);
@@ -162,6 +251,35 @@ tabAddressForm.addEventListener("submit", (event) => {
   if (tab) void navigateTab(tab, tabAddress.value);
 });
 newTabButton.addEventListener("click", () => createTab());
+backButton.addEventListener("click", () => {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (tab) navigateHistory(tab, -1);
+});
+forwardButton.addEventListener("click", () => {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (tab) navigateHistory(tab, 1);
+});
+reloadButton.addEventListener("click", () => {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (tab && tab.url) void navigateTab(tab, tab.url, false);
+});
+bookmarkButton.addEventListener("click", () => {
+  const tab = tabs.find((item) => item.id === activeTabId);
+  if (!tab || !tab.url) return;
+  if (bookmarks.some((item) => item.url === tab.url)) {
+    bookmarks = bookmarks.filter((item) => item.url !== tab.url);
+  } else {
+    bookmarks.unshift({ url: tab.url, title: tab.title });
+  }
+  saveBookmarks();
+  renderBookmarks();
+  renderNavigationControls();
+});
+bookmarksToggle.addEventListener("click", () => {
+  bookmarksPanel.hidden = !bookmarksPanel.hidden;
+  if (!bookmarksPanel.hidden) renderBookmarks();
+});
+bookmarksClose.addEventListener("click", () => { bookmarksPanel.hidden = true; });
 homeButton.addEventListener("click", () => {
   const tab = tabs.find((item) => item.id === activeTabId);
   if (!tab) return;
@@ -169,6 +287,8 @@ homeButton.addEventListener("click", () => {
   if (tab.frame) { tab.frame.frame.remove(); tab.frame = null; }
   tab.url = "";
   tab.title = "New Tab";
+  tab.history = [];
+  tab.historyIndex = -1;
   tab.home.hidden = false;
   tab.home.querySelector(".tab-home-input").value = "";
   renderTabs();

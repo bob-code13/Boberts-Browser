@@ -11,20 +11,26 @@
   <link rel="stylesheet" href="/index.css" />
   <script src="/register-sw.js?v=2" defer></script>
   <script src="/search.js?v=2" defer></script>
-  <script src="/index.js?v=2" defer></script>
+  <script src="/index.js?v=3" defer></script>
 </head>
 <body>
   <header id="browser-chrome" class="browser-chrome" hidden>
     <div id="tab-strip" class="tab-strip" role="tablist" aria-label="Browser tabs"></div>
     <button id="new-tab" class="chrome-button new-tab" type="button" title="New tab" aria-label="New tab">+</button>
     <div class="navigation-bar">
+      <button id="back-button" class="chrome-button" type="button" title="Back" aria-label="Back" disabled>←</button>
+      <button id="forward-button" class="chrome-button" type="button" title="Forward" aria-label="Forward" disabled>→</button>
+      <button id="reload-button" class="chrome-button" type="button" title="Reload current tab" aria-label="Reload current tab">↻</button>
       <button id="home-button" class="chrome-button" type="button" title="New tab home" aria-label="New tab home">⌂</button>
       <form id="tab-address-form" class="tab-address-form">
         <input id="tab-address" type="text" aria-label="Search or enter URL in current tab" placeholder="Search DuckDuckGo or enter a URL" autocomplete="off" spellcheck="false" />
         <button type="submit" aria-label="Navigate">Go ↗</button>
       </form>
+      <button id="bookmark-button" class="chrome-button" type="button" title="Bookmark this page" aria-label="Bookmark this page">☆</button>
+      <button id="bookmarks-toggle" class="chrome-button bookmarks-toggle" type="button" title="Show bookmarks" aria-label="Show bookmarks">Bookmarks</button>
     </div>
   </header>
+  <aside id="bookmarks-panel" class="bookmarks-panel" hidden aria-label="Saved bookmarks"><div class="bookmarks-heading"><strong>Bookmarks</strong><button id="bookmarks-close" type="button" aria-label="Close bookmarks">×</button></div><div id="bookmarks-list"></div></aside>
   <div id="tab-frames" class="tab-frames" hidden></div>
   <main class="homepage">
     <section class="hero" aria-label="Bobert's Browser home">
