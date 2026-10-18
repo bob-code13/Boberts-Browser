@@ -228,3 +228,27 @@ body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
 .navigation-bar { padding-right: 16px; box-sizing: border-box; }
 .navigation-bar .profile-wrap { margin-left: 10px; margin-right: 0; flex-shrink: 0; }
 @media (max-width: 600px) { .navigation-bar { padding-right: 10px; } .navigation-bar .profile-wrap { margin-left: 6px; } }
+
+/* Profile menu: align admin action with sign-out as intentional menu rows. */
+.profile-menu { padding: 16px; }
+.profile-menu #admin-link:not([hidden]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  width: 100%;
+  padding: 9px 12px;
+  margin: 12px 0 8px;
+  border: 1px solid #d4e2f6;
+  border-radius: 9px;
+  background: #edf4ff;
+  color: #185abc;
+  text-decoration: none;
+  font: 600 13px Arial, sans-serif;
+  text-align: center;
+  transition: background-color .15s ease;
+}
+.profile-menu #admin-link:not([hidden]):hover { background: #deebff; }
+.profile-menu #admin-link[hidden] { display: none !important; }
+.profile-menu form { margin: 0; }
+.profile-menu form button { min-height: 36px; font-weight: 500; }
