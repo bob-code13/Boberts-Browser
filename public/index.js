@@ -27,12 +27,9 @@ function setWebsiteFullscreen(active) {
     fullscreenButton.setAttribute("aria-label", fullscreenButton.title);
     fullscreenButton.setAttribute("aria-pressed", String(websiteFullscreen));
   }
-  const exitButton = document.getElementById("exit-website-fullscreen");
-  if (exitButton) exitButton.hidden = !websiteFullscreen;
 }
 if (fullscreenButton) {
   fullscreenButton.addEventListener("click", () => setWebsiteFullscreen(!websiteFullscreen));
-  document.getElementById("exit-website-fullscreen")?.addEventListener("click", () => setWebsiteFullscreen(false));
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && websiteFullscreen) setWebsiteFullscreen(false);
   });
