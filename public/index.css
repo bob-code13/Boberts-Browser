@@ -267,8 +267,6 @@ body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
 body.website-fullscreen .browser-chrome { display: none !important; }
 body.website-fullscreen .tab-frames { top: 0 !important; inset: 0 !important; }
 body.website-fullscreen .bookmarks-panel { display: none !important; }
-.exit-website-fullscreen { display: none; position: fixed; top: 12px; right: 14px; z-index: 100001; padding: 9px 13px; border: 1px solid #d8e1ee; border-radius: 10px; background: rgba(255,255,255,.95); color: #202124; box-shadow: 0 4px 15px #0002; font: 600 12px Arial,sans-serif; cursor: pointer; }
-body.website-fullscreen .exit-website-fullscreen:not([hidden]) { display: block; }
 
 /* Chromebook toolbar: normalize controls and prevent the address row from distorting. */
 .navigation-bar { min-width: 0; flex-wrap: nowrap; align-items: center; }
@@ -300,4 +298,46 @@ body.website-fullscreen .exit-website-fullscreen:not([hidden]) { display: block;
   .navigation-bar .tab-address-form { min-width: 70px; height: 36px; margin: 0 3px; }
   .navigation-bar .tab-address-form button { padding: 0 9px; font-size: 12px; }
   .navigation-bar .profile-wrap { margin-left: 3px; }
+}
+
+/* Chromebook: retain readable toolbar controls instead of compressing at narrow widths. */
+.navigation-bar { gap: 3px; padding-right: 12px; }
+.navigation-bar > .chrome-button,
+.navigation-bar > .fullscreen-toggle {
+  flex: 0 0 38px; width: 38px; min-width: 38px; height: 38px;
+  margin: 0; padding: 0; font-size: 22px; line-height: 1;
+}
+.navigation-bar > .bookmarks-toggle {
+  flex: 0 0 auto; width: auto; min-width: 84px; padding: 0 10px;
+  font-size: 12px;
+}
+.navigation-bar > .bookmarks-toggle::before { content: none; }
+.navigation-bar .tab-address-form { min-width: 120px; height: 40px; margin: 0 4px; }
+.navigation-bar .tab-address-form button { min-width: 62px; }
+.navigation-bar .profile-wrap { margin-left: 5px; }
+@media (max-width: 1100px) {
+  .navigation-bar { gap: 2px; padding-right: 8px; }
+  .navigation-bar > .chrome-button,
+  .navigation-bar > .fullscreen-toggle {
+    flex-basis: 36px; width: 36px; min-width: 36px; height: 38px;
+    font-size: 21px; margin: 0;
+  }
+  .navigation-bar > .bookmarks-toggle {
+    flex: 0 0 auto; width: auto; min-width: 76px; padding: 0 7px; font-size: 11px;
+  }
+  .navigation-bar > .bookmarks-toggle::before { content: none; }
+  .navigation-bar .tab-address-form { min-width: 90px; height: 40px; margin: 0 3px; }
+  .navigation-bar .tab-address-form button { min-width: 50px; padding: 0 9px; }
+  .toolbar-brand-logo { flex: 0 0 27px; width: 27px; height: 27px; margin: 0 5px; }
+}
+@media (max-width: 680px) {
+  .navigation-bar > .chrome-button,
+  .navigation-bar > .fullscreen-toggle {
+    flex-basis: 32px; width: 32px; min-width: 32px; height: 36px; font-size: 19px;
+  }
+  .navigation-bar > .bookmarks-toggle {
+    flex: 0 0 34px; width: 34px; min-width: 34px; font-size: 0; padding: 0;
+  }
+  .navigation-bar > .bookmarks-toggle::before { content: "★"; font-size: 18px; }
+  .navigation-bar .tab-address-form { min-width: 65px; height: 36px; }
 }
