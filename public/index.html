@@ -11,8 +11,20 @@
   <link rel="stylesheet" href="/index.css" />
   <script src="/register-sw.js?v=2" defer></script>
   <script src="/search.js?v=2" defer></script>
-  <script src="/index.js?v=3" defer></script>
+  <script src="/index.js?v=4" defer></script>
   <script src="/profile.js?v=1" defer></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("sj-form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (!document.body.classList.contains("tabs-open")) {
+          const error = document.getElementById("sj-error");
+          error.textContent = "Browser startup failed on this device. Refresh the page, or clear this site\u0027s cached data and try again.";
+        }
+      });
+    });
+  </script>
 </head>
 <body>
   <header id="browser-chrome" class="browser-chrome" hidden>

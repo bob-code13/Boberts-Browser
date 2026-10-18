@@ -95,8 +95,12 @@ function navigateHistory(tab, offset) {
 }
 
 
+let scramjet;
+let connection;
+let startupError = null;
+try {
 const { ScramjetController } = $scramjetLoadController();
-const scramjet = new ScramjetController({
+scramjet = new ScramjetController({
   files: {
     wasm: "/scram/scramjet.wasm.wasm",
     all: "/scram/scramjet.all.js",
@@ -105,7 +109,11 @@ const scramjet = new ScramjetController({
 });
 scramjet.init();
 
-const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+} catch (err) {
+  startupError = err;
+  console.error("Proxy startup failed", err);
+}
 const tabs = [];
 let activeTabId = null;
 let nextTabId = 1;
@@ -202,7 +210,7 @@ function closeTab(id) {
 
 async function navigateTab(tab, input, addHistory = true) {
   if (!input.trim()) return;
-  const url = search(input.trim(), searchEngine.value);
+  const url = typeof search === "function" ? search(input.trim(), searchEngine.value) : "https://duckduckgo.com/?q=" + encodeURIComponent(input.trim());
   const navigationId = ++tab.navigationId;
   if (addHistory && tab.history[tab.historyIndex] !== url) {
     tab.history = tab.history.slice(0, tab.historyIndex + 1);
@@ -306,3 +314,7 @@ document.addEventListener("keydown", (event) => {
 });
 // Open directly into the browser shell so tabs and address bar are always visible.
 createTab();
+if (startupError) {
+  error.textContent = "This device could not start the browser proxy. Try updating your browser or clearing this site\u0027s cached data.";
+  errorCode.textContent = String(startupError);
+}
