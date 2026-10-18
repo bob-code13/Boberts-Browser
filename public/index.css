@@ -209,3 +209,6 @@ body { background: #fff; }
 .profile-menu small { color:#5f6368; }
 .profile-menu a { color:#1967d2; text-decoration:none; }
 .profile-menu button { width:100%; padding:9px; background:#eef2f8; border:0; border-radius:8px; color:#202124; cursor:pointer; }
+
+.profile-wrap { position:fixed; top:12px; right:14px; z-index:100000; }
+.navigation-bar { padding-right:52px; }
