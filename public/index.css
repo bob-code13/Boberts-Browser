@@ -218,3 +218,8 @@ body { background: #fff; }
 .navigation-bar { padding-right:0; }
 .profile-menu { top:calc(100% + 9px); }
 body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
+
+/* Transparent glossy Bobert's Browser title asset. */
+.glossy-wordmark { display:block; width:100%; height:auto; max-height:220px; object-fit:contain; }
+.wordmark .wordmark-fallback { display:block; }
+.wordmark .wordmark-fallback[hidden] { display:none!important; }
