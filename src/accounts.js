@@ -8,7 +8,10 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "";
 const configured = ADMIN_PASSWORD.length >= 12 && SESSION_SECRET.length >= 32;
 const cookieName = "bb_session";
 const attempts = new Map();
-const sessionLifetime = 4 * 60 * 60 * 1000; // Require sign-in again after four hours.\nconst idleTimeout = 30 * 60 * 1000; // Expire inactive sessions after 30 minutes.\nconst presenceWindow = 2 * 60 * 1000; // Active browser heartbeat window.\nconst maxConcurrentPeople = 3;
+const sessionLifetime = 4 * 60 * 60 * 1000; // Require sign-in again after four hours.
+const idleTimeout = 30 * 60 * 1000; // Expire inactive sessions after 30 minutes.
+const presenceWindow = 2 * 60 * 1000; // Active browser heartbeat window.
+const maxConcurrentPeople = 3;
 const activeSessions = new Map(); // One in-memory entry per signed-in browser session.
 const dataFile = process.env.ACCOUNT_DATA_FILE || "/home/boberts-browser/accounts.json";
 let db = { users: [], usage: {} };
