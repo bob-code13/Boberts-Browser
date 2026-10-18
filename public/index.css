@@ -212,3 +212,9 @@ body { background: #fff; }
 
 .profile-wrap { position:fixed; top:12px; right:14px; z-index:100000; }
 .navigation-bar { padding-right:52px; }
+
+/* Keep account avatar in toolbar, clear of the new-tab button. */
+.profile-wrap { position:relative; top:auto; right:auto; margin-right:0; flex:0 0 auto; z-index:100000; }
+.navigation-bar { padding-right:0; }
+.profile-menu { top:calc(100% + 9px); }
+body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
