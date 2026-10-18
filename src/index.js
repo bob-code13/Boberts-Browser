@@ -32,7 +32,7 @@ function authenticated(req) {
   const token = cookies(req.headers.cookie)[cookieName];
   if (!token) return false;
   const [expiry, nonce, signature] = token.split(".");
-  if (!expiry || !nonce || !signature || !/^\\d+$/.test(expiry) || !/^[a-f0-9]{32}$/.test(nonce) || !/^[a-f0-9]{64}$/.test(signature)) return false;
+  if (!expiry || !nonce || !signature || !/^\d+$/.test(expiry) || !/^[a-f0-9]{32}$/.test(nonce) || !/^[a-f0-9]{64}$/.test(signature)) return false;
   if (Number(expiry) <= Date.now()) return false;
   const expected = Buffer.from(signed(expiry + "." + nonce), "hex");
   return timingSafeEqual(expected, Buffer.from(signature, "hex"));
