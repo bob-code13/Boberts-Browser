@@ -135,6 +135,16 @@ function ensureReady() {
   return readyPromise;
 }
 
+// The toolbar can be taller on narrow Chromebook windows and at non-default zoom.
+const toolbarResizeObserver = typeof ResizeObserver !== "undefined"
+  ? new ResizeObserver(() => {
+      document.documentElement.style.setProperty("--browser-toolbar-height", browserChrome.getBoundingClientRect().height + "px");
+    })
+  : null;
+if (toolbarResizeObserver) toolbarResizeObserver.observe(browserChrome);
+window.addEventListener("resize", () => {
+  document.documentElement.style.setProperty("--browser-toolbar-height", browserChrome.getBoundingClientRect().height + "px");
+});
 function renderTabs() {
   const hasTabs = tabs.length > 0;
   document.body.classList.add("tabs-open");
