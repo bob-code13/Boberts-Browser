@@ -8,10 +8,10 @@
   <link rel="icon" type="image/png" href="/boberts-logo.png?v=2" />
   <script src="/scram/scramjet.all.js"></script>
   <script src="/baremux/index.js"></script>
-  <link rel="stylesheet" href="/index.css" />
+  <link rel="stylesheet" href="/index.css?v=5" />
   <script src="/register-sw.js?v=2" defer></script>
   <script src="/search.js?v=2" defer></script>
-  <script src="/index.js?v=4" defer></script>
+  <script src="/index.js?v=5" defer></script>
   <script src="/profile.js?v=1" defer></script>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
@@ -42,6 +42,7 @@
       </form>
       <button id="bookmark-button" class="chrome-button" type="button" title="Bookmark this page" aria-label="Bookmark this page">☆</button>
       <button id="bookmarks-toggle" class="chrome-button bookmarks-toggle" type="button" title="Show bookmarks" aria-label="Show bookmarks">Bookmarks</button>
+      <button id="fullscreen-button" class="chrome-button fullscreen-toggle" type="button" title="Enter fullscreen" aria-label="Enter fullscreen" aria-pressed="false">⛶</button>
   <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
       
     </div>

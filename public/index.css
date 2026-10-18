@@ -252,3 +252,13 @@ body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
 .profile-menu #admin-link[hidden] { display: none !important; }
 .profile-menu form { margin: 0; }
 .profile-menu form button { min-height: 36px; font-weight: 500; }
+
+/* Keep the proxy viewport aligned with the actual rendered toolbar on Chromebooks. */
+.browser-chrome { height: auto; min-height: 112px; grid-template-rows: 47px minmax(64px, auto); }
+.tab-frames { top: var(--browser-toolbar-height, 112px); bottom: 0; }
+.tab-frames iframe { display: block; }
+.tab-frames iframe[hidden] { display: none; }
+
+/* Fullscreen button remains visible on Chromebook-width toolbars. */
+.navigation-bar > .fullscreen-toggle { flex: 0 0 36px; width: 36px; font-size: 22px; }
+@media (max-width: 850px) { .navigation-bar > .fullscreen-toggle { flex-basis: 30px; width: 30px; font-size: 19px; } }

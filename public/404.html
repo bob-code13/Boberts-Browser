@@ -1,27 +1,36 @@
 <!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8" />
-		<meta
-			name="viewport"
-			content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-		/>
-		<title>Page not found | Bobert\'s Browser</title>
-		<base href="/" />
-		<link rel="icon" type="image/png" href="/boberts-logo.png?v=2" />
-		<link rel="stylesheet" href="index.css" />
-	</head>
-
-	<body>
-		<div class="logo-wrapper left-margin">
-			<h1>Scramjet | Error</h1>
-		</div>
-		<div class="desc left-margin">
-			<p>The server could not route your request.</p>
-		</div>
-		<footer>
-			<a title="License information" href="credits.html">Credits</a>
-			<span>Scramjet &copy; MW 2025</span>
-		</footer>
-	</body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fafd">
+  <title>Page not found — Bobert's Browser</title>
+  <link rel="icon" type="image/png" href="/boberts-logo.png?v=2">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #f8fafd; color: #202124; font: 15px Arial, Helvetica, sans-serif; display: flex; flex-direction: column; }
+    header { display: flex; align-items: center; gap: 12px; padding: 20px clamp(22px, 5vw, 72px); background: #fff; border-bottom: 1px solid #e6e9ee; font-weight: 700; font-size: 17px; }
+    header img { width: 36px; height: 36px; object-fit: contain; }
+    main { flex: 1; display: grid; place-items: center; padding: 36px 22px; }
+    .panel { width: min(100%, 540px); padding: 40px 36px; background: #fff; border: 1px solid #e2e7f0; border-radius: 20px; box-shadow: 0 12px 35px #182b4710; text-align: center; }
+    .icon { margin: 0 auto 18px; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 17px; background: #edf4ff; color: #1967d2; font-size: 29px; font-weight: 700; }
+    h1 { margin: 0 0 12px; font-size: clamp(24px, 4vw, 31px); letter-spacing: -.025em; }
+    p { color: #647084; line-height: 1.65; margin: 0 0 26px; }
+    .actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .button { display: inline-block; border: 1px solid #1967d2; border-radius: 10px; background: #1967d2; color: #fff; padding: 12px 18px; text-decoration: none; font-weight: 700; }
+    .button.secondary { background: #fff; color: #1967d2; }
+    footer { padding: 20px; text-align: center; font-size: 12px; color: #7b8494; }
+    footer a { color: #647084; }
+  </style>
+</head>
+<body>
+  <header><img src="/boberts-logo.png?v=2" alt="">Bobert's Browser</header>
+  <main><section class="panel" aria-labelledby="error-title">
+    <div class="icon" aria-hidden="true">!</div>
+    <h1 id="error-title">We couldn't open that page</h1>
+    <p>The page may have moved, the address may be incorrect, or the connection may have failed. You can try again or return to Bobert's Browser.</p>
+    <div class="actions"><a class="button" href="/">Back to Browser</a><a class="button secondary" href="javascript:history.back()">Go back</a></div>
+  </section></main>
+  <footer>Made by Robert Ilanjian · <a href="/credits.html">Credits &amp; open-source licenses</a></footer>
+</body>
 </html>
