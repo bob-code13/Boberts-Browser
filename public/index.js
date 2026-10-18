@@ -18,25 +18,24 @@ const reloadButton = document.getElementById("reload-button");
 const bookmarkButton = document.getElementById("bookmark-button");
 const bookmarksToggle = document.getElementById("bookmarks-toggle");
 const fullscreenButton = document.getElementById("fullscreen-button");
-if (fullscreenButton) {
-  const updateFullscreen = () => {
-    const active = Boolean(document.fullscreenElement);
-    fullscreenButton.textContent = active ? "⛶" : "⛶";
-    fullscreenButton.title = active ? "Exit fullscreen" : "Enter fullscreen";
+let websiteFullscreen = false;
+function setWebsiteFullscreen(active) {
+  websiteFullscreen = Boolean(active);
+  document.body.classList.toggle("website-fullscreen", websiteFullscreen);
+  if (fullscreenButton) {
+    fullscreenButton.title = websiteFullscreen ? "Exit website fullscreen" : "Fullscreen website";
     fullscreenButton.setAttribute("aria-label", fullscreenButton.title);
-    fullscreenButton.setAttribute("aria-pressed", String(active));
-  };
-  fullscreenButton.addEventListener("click", async () => {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await document.documentElement.requestFullscreen();
-    } catch (err) {
-      console.warn("Fullscreen is unavailable in this browser", err);
-      alert("Fullscreen is not available here. Try the Chromebook fullscreen key instead.");
-    }
+    fullscreenButton.setAttribute("aria-pressed", String(websiteFullscreen));
+  }
+  const exitButton = document.getElementById("exit-website-fullscreen");
+  if (exitButton) exitButton.hidden = !websiteFullscreen;
+}
+if (fullscreenButton) {
+  fullscreenButton.addEventListener("click", () => setWebsiteFullscreen(!websiteFullscreen));
+  document.getElementById("exit-website-fullscreen")?.addEventListener("click", () => setWebsiteFullscreen(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && websiteFullscreen) setWebsiteFullscreen(false);
   });
-  document.addEventListener("fullscreenchange", updateFullscreen);
-  updateFullscreen();
 }
 const bookmarksPanel = document.getElementById("bookmarks-panel");
 const bookmarksClose = document.getElementById("bookmarks-close");
