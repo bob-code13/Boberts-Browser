@@ -44,7 +44,7 @@ function currentUser(req) {
   if (Number(expiry) <= Date.now()) return null;
   const expected = Buffer.from(signed(expiry + "." + id + "." + nonce), "hex");
   if (!timingSafeEqual(expected, Buffer.from(signature, "hex"))) return null;
-  if (id === "admin") return { id, name: "Administrator", email: ADMIN_EMAIL, admin: true };
+  if (id === "admin") return { id, name: "Robert Ilanjian", email: ADMIN_EMAIL, admin: true };
   const user = db.users.find((item) => item.id === id);
   return user ? { id, name: user.name, email: user.email, admin: false } : null;
 }
