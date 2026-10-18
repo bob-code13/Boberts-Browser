@@ -8,7 +8,8 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "";
 const configured = ADMIN_PASSWORD.length >= 12 && SESSION_SECRET.length >= 32;
 const cookieName = "bb_session";
 const attempts = new Map();
-const sessionLifetime = 4 * 60 * 60 * 1000; // Require sign-in again after four hours.\nconst idleTimeout = 30 * 60 * 1000; // Expire inactive sessions after 30 minutes.\nconst presenceWindow = 2 * 60 * 1000; // Active browser heartbeat window.\nconst maxConcurrentPeople = 5;\nconst activeSessions = new Map(); // One in-memory entry per signed-in browser session.
+const sessionLifetime = 4 * 60 * 60 * 1000; // Require sign-in again after four hours.\nconst idleTimeout = 30 * 60 * 1000; // Expire inactive sessions after 30 minutes.\nconst presenceWindow = 2 * 60 * 1000; // Active browser heartbeat window.\nconst maxConcurrentPeople = 5;
+const activeSessions = new Map(); // One in-memory entry per signed-in browser session.
 const dataFile = process.env.ACCOUNT_DATA_FILE || "/home/boberts-browser/accounts.json";
 let db = { users: [], usage: {} };
 try {
@@ -58,8 +59,30 @@ function initials(name) {
   return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("");
 }
 function cookieFor(id) {
-  const value = String(Date.now() + sessionLifetime) + "." + id + "." + randomBytes(16).toString("hex");
-  return cookieName + "=" + value + "." + signed(value) + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=43200";
+  const expires = Date.now() + sessionLifetime;
+  const nonce = randomBytes(16).toString("hex");
+  const value = expires + "." + id + "." + nonce;
+  activeSessions.set(nonce, { id, expires, lastSeen: Date.now() });
+  return cookieName + "=" + value + "." + signed(value) + "; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=14400";
+}
+function sessionNonce(req) {
+  return cookies(req.headers.cookie)[cookieName]?.split(".")[2];
+}
+function pruneSessions() {
+  const now = Date.now();
+  for (const [nonce, session] of activeSessions) {
+    if (session.expires <= now || now - session.lastSeen > idleTimeout ||
+        (session.id !== "admin" && !db.users.some((user) => user.id === session.id))) {
+      activeSessions.delete(nonce);
+    }
+  }
+}
+function activePeople() {
+  pruneSessions();
+  const now = Date.now();
+  return new Set([...activeSessions.values()]
+    .filter((session) => now - session.lastSeen < presenceWindow)
+    .map((session) => session.id));
 }
 function hashPassword(password, salt) {
   return scryptSync(password, salt, 32).toString("hex");
@@ -142,7 +165,13 @@ export function installAuth(fastify) {
       return reply.code(401).type("text/html").send(loginPage("Incorrect email or password."));
     }
     attempts.delete(ip);
-    reply.header("Set-Cookie", cookieFor(adminValid ? "admin" : user.id));
+    const signingInId = adminValid ? "admin" : user.id;
+    const people = activePeople();
+    if (!people.has(signingInId) && people.size >= maxConcurrentPeople) {
+      return reply.code(503).type("text/html; charset=utf-8")
+        .send(loginPage("Too many people are using Bobert's Browser right now (maximum 5). Please try again in a few minutes."));
+    }
+    reply.header("Set-Cookie", cookieFor(signingInId));
     return reply.redirect("/");
   });
   fastify.post("/logout", async (req, reply) => {
@@ -158,6 +187,8 @@ export function installAuth(fastify) {
   fastify.post("/api/heartbeat", async (req, reply) => {
     if (!validOrigin(req)) return reply.code(403).send("Invalid origin");
     const user = currentUser(req);
+    const session = activeSessions.get(sessionNonce(req));
+    if (session) session.lastSeen = Date.now();
     const now = Date.now();
     const entry = db.usage[user.id] || { seconds: 0, last: 0 };
     if (entry.last && now - entry.last <= 90000 && now >= entry.last) entry.seconds += Math.min((now - entry.last) / 1000, 60);
@@ -190,6 +221,9 @@ export function installAuth(fastify) {
     const id = String(req.body?.id || "");
     db.users = db.users.filter((u) => u.id !== id);
     delete db.usage[id];
+    for (const [nonce, session] of activeSessions) {
+      if (session.id === id) activeSessions.delete(nonce);
+    }
     saveDb();
     return reply.redirect("/admin");
   });
