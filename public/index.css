@@ -262,3 +262,10 @@ body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
 /* Fullscreen button remains visible on Chromebook-width toolbars. */
 .navigation-bar > .fullscreen-toggle { flex: 0 0 36px; width: 36px; font-size: 22px; }
 @media (max-width: 850px) { .navigation-bar > .fullscreen-toggle { flex-basis: 30px; width: 30px; font-size: 19px; } }
+
+/* Fullscreen applies to the website area only; Chrome's own window stays unchanged. */
+body.website-fullscreen .browser-chrome { display: none !important; }
+body.website-fullscreen .tab-frames { top: 0 !important; inset: 0 !important; }
+body.website-fullscreen .bookmarks-panel { display: none !important; }
+.exit-website-fullscreen { display: none; position: fixed; top: 12px; right: 14px; z-index: 100001; padding: 9px 13px; border: 1px solid #d8e1ee; border-radius: 10px; background: rgba(255,255,255,.95); color: #202124; box-shadow: 0 4px 15px #0002; font: 600 12px Arial,sans-serif; cursor: pointer; }
+body.website-fullscreen .exit-website-fullscreen:not([hidden]) { display: block; }
