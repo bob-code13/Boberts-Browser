@@ -223,3 +223,8 @@ body:not(.tabs-open) .profile-wrap { position:fixed; top:14px; right:18px; }
 .glossy-wordmark { display:block; width:100%; height:auto; max-height:220px; object-fit:contain; }
 .wordmark .wordmark-fallback { display:block; }
 .wordmark .wordmark-fallback[hidden] { display:none!important; }
+
+/* Account button breathing room at the right edge of the browser toolbar. */
+.navigation-bar { padding-right: 16px; box-sizing: border-box; }
+.navigation-bar .profile-wrap { margin-left: 10px; margin-right: 0; flex-shrink: 0; }
+@media (max-width: 600px) { .navigation-bar { padding-right: 10px; } .navigation-bar .profile-wrap { margin-left: 6px; } }
