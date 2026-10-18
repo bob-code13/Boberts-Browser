@@ -17,6 +17,27 @@ const forwardButton = document.getElementById("forward-button");
 const reloadButton = document.getElementById("reload-button");
 const bookmarkButton = document.getElementById("bookmark-button");
 const bookmarksToggle = document.getElementById("bookmarks-toggle");
+const fullscreenButton = document.getElementById("fullscreen-button");
+if (fullscreenButton) {
+  const updateFullscreen = () => {
+    const active = Boolean(document.fullscreenElement);
+    fullscreenButton.textContent = active ? "⛶" : "⛶";
+    fullscreenButton.title = active ? "Exit fullscreen" : "Enter fullscreen";
+    fullscreenButton.setAttribute("aria-label", fullscreenButton.title);
+    fullscreenButton.setAttribute("aria-pressed", String(active));
+  };
+  fullscreenButton.addEventListener("click", async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch (err) {
+      console.warn("Fullscreen is unavailable in this browser", err);
+      alert("Fullscreen is not available here. Try the Chromebook fullscreen key instead.");
+    }
+  });
+  document.addEventListener("fullscreenchange", updateFullscreen);
+  updateFullscreen();
+}
 const bookmarksPanel = document.getElementById("bookmarks-panel");
 const bookmarksClose = document.getElementById("bookmarks-close");
 const bookmarksList = document.getElementById("bookmarks-list");
