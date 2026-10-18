@@ -200,3 +200,12 @@ body { background: #fff; }
 .logout-form { flex: 0 0 auto; margin: 0 8px 0 0; }
 .logout-form button { white-space: nowrap; padding: 0 9px; font-size: 12px; }
 @media(max-width:650px) { .logout-form button { font-size: 11px; padding: 0 5px; } }
+
+.profile-wrap { position:relative; flex:0 0 auto; margin-right:8px; }
+.profile-button { width:36px; height:36px; border-radius:50%; border:0; background:#1967d2; color:#fff; font-size:12px; font-weight:700; cursor:pointer; }
+.profile-menu { position:absolute; z-index:99999; right:0; top:43px; width:235px; padding:15px; border-radius:14px; background:#fff; color:#202124; border:1px solid #dfe3eb; box-shadow:0 12px 30px #0002; }
+.profile-menu[hidden] { display:none; }
+.profile-menu strong,.profile-menu small,.profile-menu a { display:block; margin-bottom:9px; overflow-wrap:anywhere; }
+.profile-menu small { color:#5f6368; }
+.profile-menu a { color:#1967d2; text-decoration:none; }
+.profile-menu button { width:100%; padding:9px; background:#eef2f8; border:0; border-radius:8px; color:#202124; cursor:pointer; }
