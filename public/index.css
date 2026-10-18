@@ -196,3 +196,7 @@ body { background: #fff; }
 /* Bobert's Browser branding in the navigation toolbar. */
 .toolbar-brand-logo { display: block; flex: 0 0 30px; width: 30px; height: 30px; object-fit: contain; margin: 0 6px 0 12px; }
 @media (max-width: 600px) { .toolbar-brand-logo { flex-basis: 24px; width: 24px; height: 24px; margin: 0 3px 0 5px; } }
+
+.logout-form { flex: 0 0 auto; margin: 0 8px 0 0; }
+.logout-form button { white-space: nowrap; padding: 0 9px; font-size: 12px; }
+@media(max-width:650px) { .logout-form button { font-size: 11px; padding: 0 5px; } }
