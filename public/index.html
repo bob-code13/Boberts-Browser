@@ -15,6 +15,7 @@
   <script src="/profile.js?v=1" defer></script>
 </head>
 <body>
+  <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
   <header id="browser-chrome" class="browser-chrome" hidden>
     <div id="tab-strip" class="tab-strip" role="tablist" aria-label="Browser tabs"></div>
     <button id="new-tab" class="chrome-button new-tab" type="button" title="New tab" aria-label="New tab">+</button>
@@ -30,7 +31,7 @@
       </form>
       <button id="bookmark-button" class="chrome-button" type="button" title="Bookmark this page" aria-label="Bookmark this page">☆</button>
       <button id="bookmarks-toggle" class="chrome-button bookmarks-toggle" type="button" title="Show bookmarks" aria-label="Show bookmarks">Bookmarks</button>
-      <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
+      
     </div>
   </header>
   <aside id="bookmarks-panel" class="bookmarks-panel" hidden aria-label="Saved bookmarks"><div class="bookmarks-heading"><strong>Bookmarks</strong><button id="bookmarks-close" type="button" aria-label="Close bookmarks">×</button></div><div id="bookmarks-list"></div></aside>
