@@ -2,15 +2,38 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#071326"><title>Open-source licenses | Bobert's Browser</title>
+<meta name="theme-color" content="#ffffff"><title>Open-source licenses | Bobert's Browser</title>
 <link rel="icon" href="/boberts-logo.png">
 <style>
 :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif}*{box-sizing:border-box}body{margin:0;color:#ecf5ff;background:radial-gradient(ellipse 80% 50% at 50% -12%,#144a9d 0%,transparent 70%),radial-gradient(ellipse at 100% 100%,#092d6e 0%,transparent 55%),#050d1c;min-height:100vh}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(125deg,transparent 20%,#2e91ff0b 45%,transparent 70%)}.container{max-width:1120px;margin:auto;padding:36px 22px 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;font-weight:800;font-size:18px}.brand img{width:44px;height:44px;object-fit:contain}.back{color:#a9d4ff;text-decoration:none;border:1px solid #4d8bdc6e;padding:10px 16px;border-radius:999px;background:#0c264a90}.back:hover,.link:hover{color:white;border-color:#6ebeff}.hero{text-align:center;margin:60px auto 38px;max-width:800px}.wordmark{display:block;width:min(100%,650px);height:auto;margin:0 auto 16px}.eyebrow{color:#62c3ff;letter-spacing:.2em;text-transform:uppercase;font-size:12px;font-weight:800}h1{font-size:clamp(32px,5vw,56px);line-height:1.1;margin:10px 0 16px;letter-spacing:-.04em}.lead{color:#b5cbe4;line-height:1.75;font-size:17px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card,.creator,.notice{border:1px solid #317bd478;border-radius:23px;background:linear-gradient(145deg,#102b4dbb,#081629e8);box-shadow:inset 0 1px 0 #b2deff20,0 14px 35px #0005;padding:26px}.card h2{font-size:21px;margin:0 0 10px}.card p{color:#b7cbe1;line-height:1.6;margin:0 0 18px}.badge{display:inline-block;background:#1c5ca15e;border:1px solid #4b9ff381;border-radius:999px;padding:5px 11px;font-size:12px;color:#bce4ff;margin-bottom:16px}.links{display:flex;flex-wrap:wrap;gap:12px}.link{color:#6ec4ff;text-decoration:none;font-weight:700;font-size:14px}.creator{display:flex;align-items:center;gap:24px;margin-top:22px;background:linear-gradient(110deg,#0b3164,#09182f 65%,#092755);border-color:#47a7ff}.creator img{width:86px;height:86px;object-fit:contain}.creator .overline{color:#7acbff;font-size:14px;font-weight:700}.creator h2{margin:5px 0;font-size:clamp(25px,4vw,38px)}.creator p{margin:5px 0;color:#b8d3f1}.notice{margin-top:22px;padding:20px 26px;border-color:#28527f}.notice h2{margin:0 0 8px;font-size:17px}.notice p{color:#b8cbe1;line-height:1.65;margin:0}footer{text-align:center;margin-top:35px;color:#8eabc9;font-size:13px;line-height:1.8}footer a{color:#a5d6ff}@media(max-width:700px){.grid{grid-template-columns:1fr}.hero{margin-top:44px}.creator{align-items:flex-start}.creator img{width:58px;height:58px}.container{padding:20px 15px 48px}.card{padding:22px}.brand span{font-size:15px}}
+
+/* Clean white licensing page; retain subtle blue branding. */
+:root{color-scheme:light}
+body{background:#fff;color:#172b46}
+body:before{display:none}
+.brand{color:#17335c}
+.back{color:#165aa5;background:#f2f7ff;border-color:#cbdff6}
+.back:hover,.link:hover{color:#003f8c;border-color:#3988d8}
+.hero{margin:48px auto 34px}
+.eyebrow{color:#3279c4}
+h1{color:#142f51}
+.lead{color:#5b6e83}
+.card,.notice{background:#fff;border-color:#dbe5f0;box-shadow:0 7px 24px #1539650b,inset 0 1px 0 #fff}
+.card h2,.notice h2{color:#183b63}
+.card p,.notice p{color:#54687d}
+.badge{background:#eaf4ff;border-color:#c3dcf5;color:#2263a1}
+.link{color:#1766b4}
+.creator{background:linear-gradient(110deg,#f0f7ff,#fff);border-color:#bedaf5;box-shadow:0 7px 24px #1539650b}
+.creator .overline{color:#2878bc}
+.creator h2{color:#17375b}
+.creator p{color:#5a6e82}
+footer{color:#6d7f91}
+footer a{color:#1766b4}
 </style>
 </head>
 <body><div class="container">
 <nav class="top" aria-label="Page navigation"><a class="brand" href="/"><img src="/boberts-logo.png" alt=""> <span>Bobert's Browser</span></a><a class="back" href="/">← Back to Browser</a></nav>
-<header class="hero"><img class="wordmark" src="/boberts-glossy-wordmark.png" alt="Bobert's Browser"><div class="eyebrow">Built with the open-source community</div><h1>Open-source licenses</h1><p class="lead">Bobert's Browser is made possible by open-source developers and their projects. We appreciate the work that powers the browser and provide attribution and license information below.</p></header>
+<header class="hero"><div class="eyebrow">Built with the open-source community</div><h1>Open-source licenses</h1><p class="lead">Bobert's Browser is made possible by open-source developers and their projects. We appreciate the work that powers the browser and provide attribution and license information below.</p></header>
 <main>
 <div class="grid">
 <section class="card"><h2>Scramjet</h2><span class="badge">GNU AGPL v3</span><p>The web-proxy engine created by Mercury Workshop that powers proxied browsing in Bobert's Browser.</p><div class="links"><a class="link" href="https://github.com/MercuryWorkshop/scramjet">Source code ↗</a><a class="link" href="https://github.com/MercuryWorkshop/scramjet/blob/main/LICENSE">Project license ↗</a></div></section>
