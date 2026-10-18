@@ -26,7 +26,16 @@
   });
   async function heartbeat() {
     if (document.visibilityState !== "visible") return;
-    try { await fetch("/api/heartbeat", { method: "POST", cache: "no-store" }); } catch { return; }
+    try {
+      const response = await fetch("/api/heartbeat", { method: "POST", cache: "no-store" });
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+      if (!response.ok) return;
+      const data = await response.json();
+      if (Number.isFinite(data.hours)) document.getElementById("profile-hours").textContent = data.hours.toFixed(2) + " hours used";
+    } catch { return; }
   }
   await heartbeat();
   setInterval(heartbeat, 60000);
