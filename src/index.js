@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { installAuth, authenticated } from "./accounts.js";
+import { installBobertGPT } from "./bobertgpt.js";
 import { fileURLToPath } from "url";
 import { hostname } from "node:os";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
@@ -38,6 +39,7 @@ const fastify = Fastify({
 
 
 installAuth(fastify);
+installBobertGPT(fastify);
 
 fastify.register(fastifyStatic, {
 	root: publicPath,
