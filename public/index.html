@@ -29,7 +29,6 @@
 <body>
   <header id="browser-chrome" class="browser-chrome" hidden>
     <div id="tab-strip" class="tab-strip" role="tablist" aria-label="Browser tabs"></div>
-    <a href="/bobertgpt.html" class="chrome-button" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:0 12px" title="Open BobertGPT">✨ BobertGPT</a>
     <button id="new-tab" class="chrome-button new-tab" type="button" title="New tab" aria-label="New tab">+</button>
     <div class="navigation-bar">
       <img class="toolbar-brand-logo" src="/boberts-logo.png?v=1" alt="Bobert\'s Browser logo" width="30" height="30" />
@@ -44,14 +43,14 @@
       <button id="bookmark-button" class="chrome-button" type="button" title="Bookmark this page" aria-label="Bookmark this page">☆</button>
       <button id="bookmarks-toggle" class="chrome-button bookmarks-toggle" type="button" title="Show bookmarks" aria-label="Show bookmarks">Bookmarks</button>
       <button id="fullscreen-button" class="chrome-button fullscreen-toggle" type="button" title="Enter fullscreen" aria-label="Enter fullscreen" aria-pressed="false">⛶</button>
-  <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
+  <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><a href="/bobertgpt.html">✨ BobertGPT</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
       
     </div>
   </header>
   <aside id="bookmarks-panel" class="bookmarks-panel" hidden aria-label="Saved bookmarks"><div class="bookmarks-heading"><strong>Bookmarks</strong><button id="bookmarks-close" type="button" aria-label="Close bookmarks">×</button></div><div id="bookmarks-list"></div></aside>
   <div id="tab-frames" class="tab-frames" hidden></div>
   <main class="homepage">
-    <div id="home-profile-anchor"></div><p style="text-align:center;margin:8px"><a href="/bobertgpt.html" style="display:inline-block;background:#1967d2;color:white;padding:11px 20px;border-radius:24px;text-decoration:none;font-weight:700">✨ Open BobertGPT</a></p>
+    <div id="home-profile-anchor"></div>
     <section class="hero" aria-label="Bobert's Browser home">
       
       <h1 class="wordmark"><img class="glossy-wordmark" src="/boberts-glossy-wordmark.png?v=1" alt="Bobert's Browser" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wordmark-fallback" hidden><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></span></h1>
@@ -62,7 +61,7 @@
         <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
         <button type="submit" aria-label="Go">↵</button>
       </form>
-      <p style="font-size:12px;color:#b3bdd3">Browsing and address-bar searches may be recorded and reviewed by the administrator.</p><div class="error-container" aria-live="polite">
+      <div class="error-container" aria-live="polite">
         <p id="sj-error"></p>
         <pre id="sj-error-code"></pre>
       </div>
@@ -71,11 +70,11 @@
   </main>
   <template id="new-tab-template">
     <section class="tab-home" aria-label="New tab homepage">
-      <div class="tab-home-inner"><p style="font-size:12px;color:#b3bdd3;text-align:center">Browsing and address-bar searches may be recorded and reviewed by the administrator.</p>
+      <div class="tab-home-inner">
         
         <h1 class="wordmark"><img class="glossy-wordmark" src="/boberts-glossy-wordmark.png?v=1" alt="Bobert's Browser" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wordmark-fallback" hidden><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></span></h1>
         
-        <p style="text-align:center;margin:14px"><a href="/bobertgpt.html" style="color:white;background:#1967d2;padding:10px 18px;border-radius:22px;text-decoration:none;font-weight:700">✨ Open BobertGPT</a></p><form class="search-box tab-home-form">
+        <form class="search-box tab-home-form">
           <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
           <input class="tab-home-input" type="text" aria-label="Search or enter URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
           <button type="submit" aria-label="Search">↵</button>

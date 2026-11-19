@@ -1,5 +1,5 @@
 // Gemini free-tier integration. No paid fallback.
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const MAX_BYTES = 12 * 1024 * 1024;
 const allowed = new Set(["image/png","image/jpeg","image/webp","application/pdf","text/plain"]);
 export function installBobertGPT(fastify) {

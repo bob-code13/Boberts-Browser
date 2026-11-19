@@ -1,8 +1,10 @@
 "use strict";
 const chat=document.getElementById("chat"),form=document.getElementById("form"),prompt=document.getElementById("prompt"),files=document.getElementById("files"),status=document.getElementById("status"),send=document.getElementById("send");
 let messages=[];
-function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");el.textContent=text;chat.append(el);el.scrollIntoView({block:"end"});}
+function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");el.textContent=text;document.getElementById("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});}
 document.getElementById("new").onclick=()=>{messages=[];chat.replaceChildren();status.textContent="New chat started.";};
+document.querySelectorAll("[data-prompt]").forEach(button=>button.addEventListener("click",()=>{prompt.value=button.dataset.prompt;prompt.focus();}));
+prompt.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();form.requestSubmit();}});
 files.onchange=()=>{document.getElementById("chosen").textContent=[...files.files].map(f=>f.name).join(", ");};
 function asBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error("Cannot read file"));reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.readAsDataURL(file);});}
 form.onsubmit=async(event)=>{
