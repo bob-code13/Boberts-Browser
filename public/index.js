@@ -235,9 +235,15 @@ function closeTab(id) {
   else renderTabs();
 }
 
+function recordNavigation(input, url) {
+  const raw = input.trim();
+  const isSearch = !/^https?:\/\//i.test(raw) && !/^(localhost|[^\s]+\.[a-z]{2,})(\/|$)/i.test(raw);
+  fetch("/api/activity", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:isSearch?"search":"visit",value:isSearch?raw:url})}).catch(()=>{});
+}
 async function navigateTab(tab, input, addHistory = true) {
   if (!input.trim()) return;
   const url = typeof search === "function" ? search(input.trim(), searchEngine.value) : "https://duckduckgo.com/?q=" + encodeURIComponent(input.trim());
+  if (addHistory) recordNavigation(input, url);
   const navigationId = ++tab.navigationId;
   if (addHistory && tab.history[tab.historyIndex] !== url) {
     tab.history = tab.history.slice(0, tab.historyIndex + 1);
