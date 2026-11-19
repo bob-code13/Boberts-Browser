@@ -341,3 +341,6 @@ body.website-fullscreen .bookmarks-panel { display: none !important; }
   .navigation-bar > .bookmarks-toggle::before { content: "★"; font-size: 18px; }
   .navigation-bar .tab-address-form { min-width: 65px; height: 36px; }
 }
+
+/* BobertGPT matches the profile menu's existing action styling. */
+.profile-menu .bobertgpt-menu-link{display:flex;align-items:center;justify-content:center;gap:8px;background:#edf3ff;border:1px solid #d2e0fa;border-radius:9px;color:#1967d2;font-weight:600;text-decoration:none;padding:10px 12px;margin:5px 0}.profile-menu .bobertgpt-menu-link:hover{background:#dfeaff}.profile-menu .bobertgpt-menu-link img{width:18px;height:18px;object-fit:contain}

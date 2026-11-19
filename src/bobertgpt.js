@@ -1,5 +1,19 @@
 // Gemini free-tier integration. No paid fallback.
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+const MODEL = process.env.GEMINI_MODEL || "";
+let discoveredModel = "";
+async function selectModel(key, signal) {
+  if (MODEL) return MODEL.replace(/^models\//, "");
+  if (discoveredModel) return discoveredModel;
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100", {headers:{"x-goog-api-key":key},signal});
+  if (!response.ok) throw Object.assign(new Error("Model discovery failed"),{status:response.status});
+  const result = await response.json();
+  const available = (result.models || []).filter(model => model.supportedGenerationMethods?.includes("generateContent")).map(model => model.name.replace(/^models\//, ""));
+  const preferred = ["gemini-3.8-flash","gemini-3-flash","gemini-2.5-flash","gemini-2.0-flash"];
+  const selected = preferred.find(name => available.includes(name)) || available.find(name => /flash/i.test(name)) || available[0];
+  if (!selected) throw Object.assign(new Error("No compatible Gemini models are available for this API key"),{status:404});
+  discoveredModel = selected;
+  return selected;
+}
 const MAX_BYTES = 12 * 1024 * 1024;
 const allowed = new Set(["image/png","image/jpeg","image/webp","application/pdf","text/plain"]);
 export function installBobertGPT(fastify) {
@@ -26,10 +40,11 @@ export function installBobertGPT(fastify) {
     if (size > 10_000_000) return reply.code(413).send({error:"Conversation is too large. Start a new chat or use smaller files."});
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000);
+      const timeout = setTimeout(() => controller.abort(), 90000);
       let response;
       try {
-        response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(MODEL) + ":generateContent", {
+        const model = await selectModel(key, controller.signal);
+        response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", {
           method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},
           body:JSON.stringify({contents,generationConfig:{maxOutputTokens:2048}}),signal:controller.signal
         });
@@ -38,6 +53,12 @@ export function installBobertGPT(fastify) {
       if (!response.ok) return reply.code(response.status === 429 ? 429 : 502).send({error:response.status === 429 ? "Free AI usage limit reached. Please try again later." : "AI provider error: " + String(result.error?.message || response.status).slice(0,180)});
       const answer = (result.candidates?.[0]?.content?.parts || []).map(p=>p.text || "").join("").trim();
       return {answer:answer || "No text response was generated."};
-    } catch { return reply.code(502).send({error:"Could not reach the AI service. Try again."}); }
+    } catch (err) {
+      fastify.log.warn({name:err?.name,code:err?.cause?.code,status:err?.status}, "BobertGPT Gemini request failed");
+      if (err?.name === "AbortError") return reply.code(504).send({error:"Gemini did not respond within 90 seconds. Try a shorter message or smaller file."});
+      if (err?.status === 401 || err?.status === 403) return reply.code(502).send({error:"Google rejected the API key or model access. Check GEMINI_API_KEY in Azure."});
+      if (err?.status === 404) return reply.code(502).send({error:"No compatible Gemini model was found for this API key."});
+      return reply.code(502).send({error:"Gemini connection failed (" + String(err?.cause?.code || err?.code || err?.name || "unknown").slice(0,40) + "). Check Azure outbound connectivity and logs."});
+    }
   });
 }
