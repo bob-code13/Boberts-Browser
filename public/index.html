@@ -29,6 +29,7 @@
 <body>
   <header id="browser-chrome" class="browser-chrome" hidden>
     <div id="tab-strip" class="tab-strip" role="tablist" aria-label="Browser tabs"></div>
+    <a href="/bobertgpt.html" class="chrome-button" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:0 12px" title="Open BobertGPT">✨ BobertGPT</a>
     <button id="new-tab" class="chrome-button new-tab" type="button" title="New tab" aria-label="New tab">+</button>
     <div class="navigation-bar">
       <img class="toolbar-brand-logo" src="/boberts-logo.png?v=1" alt="Bobert\'s Browser logo" width="30" height="30" />
@@ -61,7 +62,7 @@
         <input id="sj-address" type="text" aria-label="Search or enter a URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
         <button type="submit" aria-label="Go">↵</button>
       </form>
-      <div class="error-container" aria-live="polite">
+      <p style="font-size:12px;color:#b3bdd3">Browsing and address-bar searches may be recorded and reviewed by the administrator.</p><div class="error-container" aria-live="polite">
         <p id="sj-error"></p>
         <pre id="sj-error-code"></pre>
       </div>
@@ -70,11 +71,11 @@
   </main>
   <template id="new-tab-template">
     <section class="tab-home" aria-label="New tab homepage">
-      <div class="tab-home-inner">
+      <div class="tab-home-inner"><p style="font-size:12px;color:#b3bdd3;text-align:center">Browsing and address-bar searches may be recorded and reviewed by the administrator.</p>
         
         <h1 class="wordmark"><img class="glossy-wordmark" src="/boberts-glossy-wordmark.png?v=1" alt="Bobert's Browser" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="wordmark-fallback" hidden><span class="color-logo" aria-label="Bobert's Browser"><span class="c-blue">B</span><span class="c-red">o</span><span class="c-yellow">b</span><span class="c-blue">e</span><span class="c-green">r</span><span class="c-red">t</span><span class="c-blue">'</span><span class="c-yellow">s</span><span class="logo-gap"> </span><span class="c-blue">B</span><span class="c-red">r</span><span class="c-yellow">o</span><span class="c-blue">w</span><span class="c-green">s</span><span class="c-red">e</span><span class="c-blue">r</span></span></span></h1>
         
-        <form class="search-box tab-home-form">
+        <p style="text-align:center;margin:14px"><a href="/bobertgpt.html" style="color:white;background:#1967d2;padding:10px 18px;border-radius:22px;text-decoration:none;font-weight:700">✨ Open BobertGPT</a></p><form class="search-box tab-home-form">
           <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
           <input class="tab-home-input" type="text" aria-label="Search or enter URL" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" spellcheck="false" />
           <button type="submit" aria-label="Search">↵</button>
