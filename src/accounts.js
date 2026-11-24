@@ -176,6 +176,7 @@ export function installAuth(fastify) {
     reply.header("Cache-Control", "no-store");
     const path = req.url.split("?")[0];
     if (path === "/login" || path === "/boberts-logo.png" || path === "/favicon.ico") return;
+    if ((req.method === "GET" || req.method === "HEAD") && path === "/google547bdb0c7bb6872b.html") return;
     pruneSessions();
     const user = currentUser(req);
     if (!user) {
