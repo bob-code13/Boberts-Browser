@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /login
+Disallow: /admin
+Disallow: /api/
+Disallow: /scram/
+Disallow: /wisp/
+Disallow: /bobertgpt.html
+Sitemap: https://boberts-browser-bfdecmemfbfaf8aw.canadacentral-01.azurewebsites.net/sitemap.xml
