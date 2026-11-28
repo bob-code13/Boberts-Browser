@@ -115,6 +115,7 @@ function navigateHistory(tab, offset) {
 let scramjet;
 let connection;
 let startupError = null;
+let controllerReady;
 try {
 const { ScramjetController } = $scramjetLoadController();
 scramjet = new ScramjetController({
@@ -124,7 +125,7 @@ scramjet = new ScramjetController({
     sync: "/scram/scramjet.sync.js",
   },
 });
-scramjet.init();
+controllerReady = Promise.resolve(scramjet.init());
 
 connection = new BareMux.BareMuxConnection("/baremux/worker.js");
 } catch (err) {
@@ -139,10 +140,23 @@ let readyPromise = null;
 function ensureReady() {
   if (!readyPromise) {
     readyPromise = (async () => {
-      await registerSW();
+      if(startupError)throw startupError;
+      await controllerReady;
       const wispUrl = (location.protocol === "https:" ? "wss" : "ws") + "://" + location.host + "/wisp/";
-      if ((await connection.getTransport()) !== "/libcurl/index.mjs") {
-        await connection.setTransport("/libcurl/index.mjs", [{ websocket: wispUrl }]);
+      await connection.setTransport("/libcurl/index.mjs", [{ websocket: wispUrl }]);
+      await registerSW();
+      await navigator.serviceWorker.ready;
+      // Probe a real, read-only request through BareMux before exposing frames.
+      const client = new BareMux.BareClient();
+      for(let attempt=0;attempt<5;attempt++){
+        try{
+          const result=await client.fetch(new URL("https://duckduckgo.com/robots.txt"),{signal:AbortSignal.timeout(8000)});
+          await result.body?.cancel();
+          return;
+        }catch(err){
+          if(attempt===4 || !/wasm not loaded|load_wasm|not ready/i.test(String(err)))throw err;
+          await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));
+        }
       }
     })().catch((err) => {
       readyPromise = null;
