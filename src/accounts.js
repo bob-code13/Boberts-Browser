@@ -294,13 +294,13 @@ export function installAuth(fastify) {
       const g={id:randomBytes(16).toString("hex"),name,members,owner:me};groups().push(g);saveDb();return g;
     }
     const g=groups().find(g=>g.id===q.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});
-    if(q.action==="leave"){g.members=g.members.filter(id=>id!==me);if(g.owner===me)g.owner=g.members[0];saveDb();return {ok:true};}
+    if(q.action==="manage"&&g.owner===me){const name=String(q.name||"").trim(),members=[...new Set([me,...(Array.isArray(q.members)?q.members:[])])];if(!name||name.length>80||members.length>10||members.some(id=>!personName(id)))return reply.code(400).send({error:"Invalid group"});g.name=name;g.members=members;const room=groupRooms.get(g.id);if(room){for(const id of Object.keys(room.joined))if(!members.includes(id))delete room.joined[id];room.signals=room.signals.filter(s=>members.includes(s.from)&&members.includes(s.to));}saveDb();return {ok:true};}if(q.action==="leave"){const room=groupRooms.get(g.id);if(room){delete room.joined[me];room.signals=room.signals.filter(s=>s.from!==me&&s.to!==me);}g.members=g.members.filter(id=>id!==me);if(g.owner===me)g.owner=g.members[0];saveDb();return {ok:true};}
     return reply.code(400).send({error:"Invalid action"});
   });
   fastify.get("/api/group-messages",async(req,reply)=>{const me=currentUser(req).id,g=groups().find(g=>g.id===req.query.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});return (db.groupMessages||[]).filter(m=>m.group===g.id).slice(-100);});
   fastify.post("/api/group-messages",{bodyLimit:8192},async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});const me=currentUser(req),q=req.body||{},g=groups().find(g=>g.id===q.id&&g.members.includes(me.id)),body=String(q.text||"").trim();if(!g||!body||body.length>2000)return reply.code(400).send({error:"Invalid message"});const rows=db.groupMessages||(db.groupMessages=[]);if(rows.filter(m=>m.from===me.id&&m.at>Date.now()-10000).length>=10)return reply.code(429).send({error:"Slow down"});rows.push({group:g.id,from:me.id,name:me.name,text:body,at:Date.now(),id:randomBytes(16).toString("hex")});db.groupMessages=rows.slice(-5000);saveDb();return {ok:true};});
   function pruneRooms(){for(const [id,r] of groupRooms){for(const [p,t] of Object.entries(r.joined))if(Date.now()-t>45000)delete r.joined[p];if(!Object.keys(r.joined).length)groupRooms.delete(id);}}
-  fastify.get("/api/group-calls",async req=>{pruneRooms();const me=currentUser(req).id;return [...groupRooms.values()].filter(r=>groups().some(g=>g.id===r.group&&g.members.includes(me))).map(r=>({id:r.id,group:r.group,mode:r.mode,joined:Object.keys(r.joined),signals:r.signals.filter(s=>s.to===me)}));});
+  fastify.get("/api/group-calls",async req=>{pruneRooms();const me=currentUser(req).id;return [...groupRooms.values()].filter(r=>groups().some(g=>g.id===r.group&&g.members.includes(me))).map(r=>({id:r.id,group:r.group,mode:r.mode,joined:Object.keys(r.joined),signals:r.joined[me]?r.signals.filter(s=>s.to===me):[]}));});
   fastify.post("/api/group-calls",{bodyLimit:65536},async(req,reply)=>{
     if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});pruneRooms();const me=currentUser(req).id,q=req.body||{},g=groups().find(g=>g.id===q.group&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});
     let r=groupRooms.get(g.id);
@@ -308,7 +308,7 @@ export function installAuth(fastify) {
     if(!r||r.id!==q.id||!r.joined[me])return reply.code(404).send({error:"Call unavailable"});
     if(q.action==="leave"){delete r.joined[me];r.signals=r.signals.filter(s=>s.from!==me&&s.to!==me);}
     else if(q.action==="keep")r.joined[me]=Date.now();
-    else if(q.action==="signal"){if(!r.joined[q.to]||q.to===me||!["offer","answer","ice","camera"].includes(q.kind)||(JSON.stringify(q.data)||"").length>50000)return reply.code(400).send({error:"Invalid signal"});r.signals.push({id:randomBytes(12).toString("hex"),from:me,to:q.to,kind:q.kind,data:q.data});r.signals=r.signals.slice(-300);}
+    else if(q.action==="signal"){if(!r.joined[q.to]||!g.members.includes(q.to)||q.to===me||!["offer","answer","ice","camera"].includes(q.kind)||(JSON.stringify(q.data)||"").length>50000)return reply.code(400).send({error:"Invalid signal"});r.signals.push({id:randomBytes(12).toString("hex"),from:me,to:q.to,kind:q.kind,data:q.data});r.signals=r.signals.slice(-300);}
     else if(q.action==="ack")r.signals=r.signals.filter(s=>!(s.to===me&&s.id===q.signal));
     else return reply.code(400).send({error:"Invalid action"});return {ok:true};
   });
@@ -369,7 +369,7 @@ export function installAuth(fastify) {
     if (!validOrigin(req)) return reply.code(403).send("Invalid origin");
     const id = String(req.body?.id || "");
     db.users = db.users.filter((u) => u.id !== id);
-    delete db.usage[id];
+    delete db.usage[id];for(const g of groups()){g.members=g.members.filter(x=>x!==id);if(g.owner===id)g.owner=g.members[0];}for(const room of groupRooms.values()){delete room.joined[id];room.signals=room.signals.filter(s=>s.from!==id&&s.to!==id);}
     if(Array.isArray(db.messages))db.messages=db.messages.filter(m=>m.from!==id&&m.to!==id);
     for (const [nonce, session] of activeSessions) {
       if (session.id === id) activeSessions.delete(nonce);
