@@ -60,7 +60,7 @@ export function installBobertGPT(fastify) {
     const query=String(req.body?.searchQuery||"").trim().slice(0,400);
     const mode=req.body?.searchMode;
     const wantsSearch=mode==="on" || (mode!=="off" && /\b(latest|today|current|recent|news|weather|price|202[5-9]|iphone|released|release date|who is|what is the)\b/i.test(query));
-    let sources=[],searchStatus="off",context="Current date: "+new Date().toISOString().slice(0,10)+". Do not pretend to know current facts without evidence.";
+    let sources=[],searchStatus="off",context="Current date: "+new Date().toISOString().slice(0,10)+". Do not pretend to know current facts without evidence. Use Markdown, LaTeX delimiters for math, and \\ce for chemistry inside math. For charts use a fenced chart block containing JSON with type (bar, line, pie or doughnut), title, labels and numeric values arrays. For diagrams use fenced mermaid blocks. For interactive examples use fenced html blocks with self-contained HTML/CSS/JS. Use [1] style citations only when sources are provided.";
     if(wantsSearch&&query){
       searchStatus="unavailable";
       if(process.env.TAVILY_API_KEY){
