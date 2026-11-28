@@ -308,7 +308,7 @@ export function installAuth(fastify) {
     if(!r||r.id!==q.id||!r.joined[me])return reply.code(404).send({error:"Call unavailable"});
     if(q.action==="leave"){delete r.joined[me];r.signals=r.signals.filter(s=>s.from!==me&&s.to!==me);}
     else if(q.action==="keep")r.joined[me]=Date.now();
-    else if(q.action==="signal"){if(!r.joined[q.to]||q.to===me||!["offer","answer","ice","camera"].includes(q.kind)||JSON.stringify(q.data).length>50000)return reply.code(400).send({error:"Invalid signal"});r.signals.push({id:randomBytes(12).toString("hex"),from:me,to:q.to,kind:q.kind,data:q.data});r.signals=r.signals.slice(-300);}
+    else if(q.action==="signal"){if(!r.joined[q.to]||q.to===me||!["offer","answer","ice","camera"].includes(q.kind)||(JSON.stringify(q.data)||"").length>50000)return reply.code(400).send({error:"Invalid signal"});r.signals.push({id:randomBytes(12).toString("hex"),from:me,to:q.to,kind:q.kind,data:q.data});r.signals=r.signals.slice(-300);}
     else if(q.action==="ack")r.signals=r.signals.filter(s=>!(s.to===me&&s.id===q.signal));
     else return reply.code(400).send({error:"Invalid action"});return {ok:true};
   });
@@ -323,10 +323,10 @@ export function installAuth(fastify) {
       const to=String(q.to||""),person=to==="admin"?{name:"Administrator"}:db.users.find(u=>u.id===to);
       if(!person||to===me.id||!["voice","video"].includes(q.mode)||typeof q.sdp!=="string"||q.sdp.length>50000)return fail(400,"Invalid call");
       if([...calls.values()].some(c=>[c.from,c.to].some(id=>id===me.id||id===to)&&c.state!=="ended"))return fail(409,"Someone is already in a call");
-      const c={id:randomBytes(16).toString("hex"),from:me.id,to,fromName:me.name||"Contact",toName:person.name,mode:q.mode,offer:q.sdp,answer:null,state:"ringing",updated:now};calls.set(c.id,c);return c;
+      const c={id:randomBytes(16).toString("hex"),from:me.id,to,fromName:me.name||"Contact",toName:person.name,mode:q.mode,fromCamera:q.mode==="video",toCamera:q.mode==="video",offer:q.sdp,answer:null,state:"ringing",updated:now};calls.set(c.id,c);return c;
     }
     const c=calls.get(String(q.id||""));if(!c||![c.from,c.to].includes(me.id))return fail(404,"Call unavailable");
-    if(q.action==="end"){c.state="ended";c.updated=now;return {ok:true};}
+    if(q.action==="camera"){if(c.from===me.id)c.fromCamera=q.on===true;else c.toCamera=q.on===true;return {ok:true};}if(q.action==="end"){c.state="ended";c.updated=now;return {ok:true};}
     if(q.action==="answer"&&c.to===me.id&&c.state==="ringing"&&typeof q.sdp==="string"&&q.sdp.length<=50000){c.answer=q.sdp;c.state="connected";c.updated=now;return {ok:true};}
     if(q.action==="keep"&&c.state==="connected"){c.updated=now;return {ok:true};}
     return fail(409,"Call no longer available");
