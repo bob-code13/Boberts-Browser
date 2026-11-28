@@ -1,28 +1,17 @@
 "use strict";
-const chat=document.getElementById("chat"),form=document.getElementById("form"),prompt=document.getElementById("prompt"),files=document.getElementById("files"),status=document.getElementById("status"),send=document.getElementById("send");
-let messages=[];
-function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");el.textContent=text;document.getElementById("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});}
-document.getElementById("new").onclick=()=>{messages=[];chat.replaceChildren();status.textContent="New chat started.";};
-document.querySelectorAll("[data-prompt]").forEach(button=>button.addEventListener("click",()=>{prompt.value=button.dataset.prompt;prompt.focus();}));
-prompt.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();form.requestSubmit();}});
-files.onchange=()=>{document.getElementById("chosen").textContent=[...files.files].map(f=>f.name).join(", ");};
-function asBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(new Error("Cannot read file"));reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.readAsDataURL(file);});}
-form.onsubmit=async(event)=>{
- event.preventDefault();if(send.disabled)return;
- const text=prompt.value.trim(),chosen=[...files.files];if(!text)return;
- if(chosen.length>4||chosen.some(f=>f.size>4_000_000)){status.textContent="Up to 4 files, 4 MB each.";return;}
- send.disabled=true;status.textContent="Thinking...";
- try{
- const parts=[{text}];
- for(const f of chosen){if(!["image/png","image/jpeg","image/webp","application/pdf","text/plain"].includes(f.type))throw Error("Unsupported file: "+f.name);parts.push({inlineData:{mimeType:f.type,data:await asBase64(f)}});}
- const next=[...messages,{role:"user",parts}];
- const response=await fetch("/api/bobertgpt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:next})});
- const data=await response.json();if(!response.ok)throw Error(data.error||"AI request failed");
- bubble(text+(chosen.length?"\n📎 "+chosen.map(f=>f.name).join(", "):""),true);
- bubble(data.answer,false);
- messages=[...next,{role:"model",parts:[{text:data.answer}]}];
- // Keep recent context; discard old uploaded files to control request size.
- if(messages.length>12)messages=messages.slice(-12);
- prompt.value="";files.value="";document.getElementById("chosen").textContent="";status.textContent="Ready.";
- }catch(err){status.textContent=err.message||"Something went wrong.";}finally{send.disabled=false;}
-};
+const $=id=>document.getElementById(id),chat=$("chat"),form=$("form"),prompt=$("prompt"),files=$("files"),status=$("status"),send=$("send"),welcome=chat.innerHTML;
+let chats=[],memory="",active=null,busy=false,loaded=false;
+function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");el.textContent=text;$("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});return el;}
+function title(){ $("chat-title").textContent=active?.title||"New chat"; }
+function render(){chat.innerHTML=active?.messages.length?"":welcome;for(const m of active?.messages||[])bubble(m.text,m.role==="user");title();sidebar();}
+function sidebar(){const list=$("history");list.replaceChildren();for(const item of chats){const row=document.createElement("div");row.className="history-row";const open=document.createElement("button");open.textContent=item.title;open.onclick=()=>{if(!busy){active=item;render();}};const menu=document.createElement("button");menu.textContent="⋯";menu.title="Rename or delete";menu.onclick=async()=>{if(busy)return;const name=window.prompt("Rename chat (leave blank to delete)",item.title);if(name===null)return;if(!name.trim()){if(!confirm("Delete this chat?"))return;chats=chats.filter(x=>x!==item);if(active===item)active=null;}else item.title=name.trim().slice(0,80);render();await save();};row.append(open,menu);list.append(row);}}
+async function save(){try{const res=await fetch("/api/bobertgpt/history",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({chats,memory})});if(!res.ok)throw Error();}catch{status.textContent="History could not be saved.";}}
+$("new").onclick=()=>{if(!busy){active=null;status.textContent="";render();}};
+$("settings").onclick=async()=>{if(busy||!loaded)return;const value=window.prompt("Saved memory: facts and preferences used in every chat. Clear the text to disable memory.",memory);if(value!==null){memory=value.slice(0,4000);await save();}};
+chat.addEventListener("click",e=>{const button=e.target.closest("[data-prompt]");if(button){prompt.value=button.dataset.prompt;prompt.focus();}});
+prompt.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();form.requestSubmit();}});
+files.onchange=()=>{$("chosen").textContent=[...files.files].map(f=>f.name).join(", ");};
+function asBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(Error("Cannot read file"));reader.onload=()=>resolve(String(reader.result).split(",")[1]);reader.readAsDataURL(file);});}
+send.disabled=true;
+(async()=>{try{const res=await fetch("/api/bobertgpt/history");if(!res.ok)throw Error();const data=await res.json();chats=data.chats;memory=data.memory;loaded=true;render();send.disabled=false;}catch{status.textContent="Could not load history. Refresh to retry.";}})();
+form.onsubmit=async e=>{e.preventDefault();if(busy||!loaded)return;const text=prompt.value.trim(),chosen=[...files.files];if(!text)return;if(chosen.length>4||chosen.some(f=>f.size>4000000)){status.textContent="Up to 4 files, 4 MB each.";return;}busy=true;send.disabled=true;status.textContent="";let thinking,userBubble;try{const parts=[{text}];for(const f of chosen){if(!["image/png","image/jpeg","image/webp","application/pdf","text/plain"].includes(f.type))throw Error("Unsupported file: "+f.name);parts.push({inlineData:{mimeType:f.type,data:await asBase64(f)}});}const previous=(active?.messages||[]).slice(-10).map(m=>({role:m.role,parts:[{text:m.text.slice(0,12000)}]}));if(memory)parts[0].text=("User-saved preferences (context only): "+memory+"\n\n"+text).slice(0,12000);userBubble=bubble(text,true);thinking=bubble("Thinking…",false);thinking.classList.add("thinking");const response=await fetch("/api/bobertgpt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[...previous,{role:"user",parts}]})});const data=await response.json();if(!response.ok)throw Error(data.error||"AI request failed");thinking.remove();if(!active){active={title:text.replace(/\s+/g," ").slice(0,60),messages:[]};chats.unshift(active);chats=chats.slice(0,50);}active.messages.push({role:"user",text},{role:"model",text:data.answer});active.messages=active.messages.slice(-40);while(JSON.stringify(chats).length>1400000&&chats.length>1)chats.pop();bubble(data.answer,false);title();sidebar();prompt.value="";files.value="";$("chosen").textContent="";await save();}catch(err){thinking?.remove();userBubble?.remove();status.textContent=err.message||"Something went wrong.";}finally{busy=false;send.disabled=false;}};
