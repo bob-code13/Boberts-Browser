@@ -184,6 +184,10 @@ export function installAuth(fastify) {
       if (req.method === "GET" && !path.startsWith("/api/")) return reply.redirect("/login");
       return reply.code(401).send({ error: "Authentication required" });
     }
+    if (path === "/api/bobertgpt" || path === "/api/bobertgpt/history") {
+      const session = activeSessions.get(sessionNonce(req));
+      if (session) session.lastSeen = Date.now();
+    }
     if (path.startsWith("/admin") && !user.admin) return reply.code(403).send("Administrator only");
   });
   fastify.get("/login", async (req, reply) => {
