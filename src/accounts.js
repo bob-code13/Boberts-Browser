@@ -40,7 +40,7 @@ function cookies(header = "") {
 function signed(value) {
   return createHmac("sha256", SESSION_SECRET).update(value).digest("hex");
 }
-function currentUser(req) {
+export function currentUser(req) {
   if (!configured) return null;
   const token = cookies(req.headers.cookie)[cookieName];
   if (!token) return null;
