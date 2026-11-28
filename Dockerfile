@@ -11,6 +11,7 @@ RUN apk add --no-cache python3 make g++ \
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
+RUN npm install --prefix /opt/bobert-math --no-audit --no-fund --ignore-scripts katex@0.16.22
 COPY . .
 EXPOSE 3000
 CMD ["node", "src/index.js"]

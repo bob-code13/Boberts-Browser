@@ -23,7 +23,14 @@ function inlineMarkdown(parent,text){
   parent.append(document.createTextNode(text.slice(pos)));
 }
 function renderMarkdown(parent,text){
-  const lines=String(text).replace(/\r\n?/g,"\n").split("\n");
+  const math=[];
+  const protectedText=String(text).replace(/\r\n?/g,"\n").replace(/\x60{3}[\s\S]*?\x60{3}|\x60[^\n\x60]*\x60|\\{1,2}\[[\s\S]*?\\{1,2}\]|\\{1,2}\([\s\S]*?\\{1,2}\)|\$\$[\s\S]*?\$\$|\$(?!\s|\d)[^$\n]+?\$/g,raw=>{
+    if(raw.startsWith("\x60"))return raw;
+    const display=/^(?:\\{1,2}\[|\$\$)/.test(raw);
+    const tex=raw.replace(/^\\{1,2}[\[(]|\\{1,2}[\])]$/g,"").replace(/^\$\$?|\$\$?$/g,"").replace(/\\_/g,"_").trim();
+    const token="BGPTMATH"+math.length+"END";math.push({token,tex,display});return display?"\n"+token+"\n":token;
+  });
+  const lines=protectedText.split("\n");
   const cells=s=>s.trim().replace(/^\||\|$/g,"").split(/(?<!\\)\|/).map(x=>x.trim().replace(/\\\|/g,"|"));
   const separator=s=>s&&s.includes("|")&&cells(s).every(x=>/^:?-{3,}:?$/.test(x));
   const tableStart=i=>lines[i]?.includes("|")&&separator(lines[i+1]);
@@ -38,6 +45,8 @@ function renderMarkdown(parent,text){
     const item=listMatch(line);if(item){const ordered=/\d/.test(item[1]),list=document.createElement(ordered?"ol":"ul");if(ordered)list.start=parseInt(item[1],10);while(i<lines.length){const m=listMatch(lines[i]);if(!m||/\d/.test(m[1])!==ordered)break;const li=document.createElement("li");inlineMarkdown(li,m[2]);list.append(li);i++;}parent.append(list);continue;}
     const p=document.createElement("p");inlineMarkdown(p,line);parent.append(p);i++;
   }
+  const walker=document.createTreeWalker(parent,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  for(const node of nodes){if(node.parentElement.closest("code,pre"))continue;const value=node.nodeValue;if(!/BGPTMATH\d+END/.test(value))continue;const fragment=document.createDocumentFragment();let pos=0;for(const m of value.matchAll(/BGPTMATH(\d+)END/g)){fragment.append(document.createTextNode(value.slice(pos,m.index)));const item=math[Number(m[1])];if(item){const span=document.createElement("span");span.className=item.display?"math-display":"math-inline";if(window.katex){try{window.katex.render(item.tex,span,{displayMode:item.display,throwOnError:false,trust:false,maxExpand:500,maxSize:20});}catch{span.textContent=item.tex;}}else span.textContent=item.tex;fragment.append(span);}else fragment.append(document.createTextNode(m[0]));pos=m.index+m[0].length;}fragment.append(document.createTextNode(value.slice(pos)));node.replaceWith(fragment);}
 }
 function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");if(mine)el.textContent=text;else renderMarkdown(el,text);$("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});return el;}
 function showSources(el,sources,searchStatus){if(searchStatus==="unavailable"){const note=document.createElement("p");note.textContent="Live web search unavailable.";el.append(note);}if(!Array.isArray(sources)||!sources.length)return;const box=document.createElement("div");box.style.cssText="font-size:13px;margin-top:12px";box.textContent="Sources: ";sources.slice(0,4).forEach((s,i)=>{try{const url=new URL(s.url);if(!["https:","http:"].includes(url.protocol))return;const a=document.createElement("a");a.href=url.href;a.target="_blank";a.rel="noopener noreferrer";a.textContent="["+ (i+1)+"] "+String(s.title||url.hostname);a.style.display="block";box.append(a);}catch{}});el.append(box);}

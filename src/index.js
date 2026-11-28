@@ -64,6 +64,12 @@ fastify.register(fastifyStatic, {
 	decorateReply: false,
 });
 
+fastify.register(fastifyStatic, {
+  root: "/opt/bobert-math/node_modules/katex/dist",
+  prefix: "/math/",
+  decorateReply: false,
+});
+
 fastify.setNotFoundHandler((res, reply) => {
 	return reply.code(404).type("text/html").sendFile("404.html");
 });
