@@ -43,7 +43,7 @@
       <button id="bookmark-button" class="chrome-button" type="button" title="Bookmark this page" aria-label="Bookmark this page">☆</button>
       <button id="bookmarks-toggle" class="chrome-button bookmarks-toggle" type="button" title="Show bookmarks" aria-label="Show bookmarks">Bookmarks</button>
       <button id="fullscreen-button" class="chrome-button fullscreen-toggle" type="button" title="Enter fullscreen" aria-label="Enter fullscreen" aria-pressed="false">⛶</button>
-  <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><a href="/bobertgpt.html" class="bobertgpt-menu-link"><img src="/boberts-logo.png" alt="">BobertGPT</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
+  <div class="profile-wrap"><button id="profile-button" class="profile-button" type="button" aria-label="Profile" aria-expanded="false">BB</button><div id="profile-menu" class="profile-menu" hidden><strong id="profile-name">Account</strong><small id="profile-email"></small><small id="profile-hours"></small><a id="admin-link" href="/admin" hidden>Admin Dashboard</a><a href="/bobertgpt.html" class="bobertgpt-menu-link"><img src="/bobertgpt-logo.svg" alt="">BobertGPT</a><form action="/logout" method="post"><button type="submit">Sign out</button></form></div></div>
       
     </div>
   </header>
@@ -91,5 +91,24 @@
     <span>© 2026 Bobert's Enterprise. All rights reserved.</span>
     <a href="/credits.html" aria-label="Open source licenses">Open-source licenses</a>
   </footer>
+<dialog id="gpt-announcement" aria-labelledby="gpt-announcement-title" style="box-sizing:border-box;width:min(440px,92vw);max-height:90vh;overflow:auto;border:1px solid #dce2eb;border-radius:24px;padding:28px;text-align:center;background:white;color:#202124;box-shadow:0 20px 80px #0003;font:15px system-ui,sans-serif">
+<img src="/bobertgpt-logo.svg" width="72" height="72" alt="BobertGPT">
+<h2 id="gpt-announcement-title" style="font-size:25px;margin:12px 0">Introducing BobertGPT</h2>
+<p style="line-height:1.6;color:#596579">Your AI assistant is here. Ask questions, search the live web, get help with coding and math, or upload images and PDFs.</p>
+<p style="font-size:13px;color:#596579">Free to use within provider limits.</p>
+<a id="gpt-try" href="/bobertgpt.html" style="display:block;padding:12px;border-radius:12px;background:#245bce;color:white;text-decoration:none;font-weight:650">Try BobertGPT</a>
+<form method="dialog"><button style="margin-top:12px;padding:9px 20px;border:0;background:transparent;color:#596579;cursor:pointer;font:inherit">Not now</button></form>
+</dialog>
+<style>#gpt-announcement::backdrop{background:#17243b66}</style>
+<script>
+window.addEventListener("DOMContentLoaded",()=>{
+ const dialog=document.getElementById("gpt-announcement"),key="bobertgpt-announcement-v1";
+ const remember=()=>{try{localStorage.setItem(key,"1")}catch{}};
+ dialog.addEventListener("close",remember);
+ document.getElementById("gpt-try").addEventListener("click",remember);
+ let seen=false;try{seen=localStorage.getItem(key)==="1"}catch{}
+ if(!seen&&typeof dialog.showModal==="function")dialog.showModal();
+});
+</script>
 </body>
 </html>
