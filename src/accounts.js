@@ -290,7 +290,7 @@ export function installAuth(fastify) {
     const me=currentUser(req).id,q=req.body||{};
     if(q.action==="create"){
       const name=String(q.name||"").trim(),members=[...new Set([me,...(Array.isArray(q.members)?q.members:[])])];
-      if(!name||name.length>80||members.length<3||members.length>10||members.some(id=>!personName(id))||groups().length>=100)return reply.code(400).send({error:"Invalid group"});
+      if(!name||name.length>80)return reply.code(400).send({error:"Enter a group name of 1–80 characters."});if(members.length<2||members.length>10)return reply.code(400).send({error:"Select 1–9 other members."});if(members.some(id=>!personName(id)))return reply.code(400).send({error:"A selected member is no longer available."});if(groups().length>=100)return reply.code(400).send({error:"Group limit reached."});
       const g={id:randomBytes(16).toString("hex"),name,members,owner:me};groups().push(g);saveDb();return g;
     }
     const g=groups().find(g=>g.id===q.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});
