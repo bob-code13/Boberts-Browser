@@ -1,3 +1,8 @@
+import { currentUser } from "./accounts.js";
+import { mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
+import { dirname, join } from "node:path";
+const historyDir=join(dirname(process.env.ACCOUNT_DATA_FILE || "/home/boberts-browser/accounts.json"),"gpt-history");
+function historyFile(req){return join(historyDir,currentUser(req).id+".json");}
 // Gemini free-tier integration. No paid fallback.
 const MODEL = process.env.GEMINI_MODEL || "";
 let discoveredModel = "";
@@ -17,6 +22,19 @@ async function selectModel(key, signal) {
 const MAX_BYTES = 12 * 1024 * 1024;
 const allowed = new Set(["image/png","image/jpeg","image/webp","application/pdf","text/plain"]);
 export function installBobertGPT(fastify) {
+  fastify.get("/api/bobertgpt/history", async (req,reply)=>{
+    if(!currentUser(req)) return reply.code(401).send({error:"Sign in required"});
+    try{return JSON.parse(readFileSync(historyFile(req),"utf8"));}catch(e){if(e.code==="ENOENT")return {chats:[],memory:""};throw e;}
+  });
+  fastify.put("/api/bobertgpt/history",{bodyLimit:2000000},async(req,reply)=>{
+    if(!currentUser(req))return reply.code(401).send({error:"Sign in required"});
+    if(req.headers.origin && new URL(req.headers.origin).host!==req.headers.host)return reply.code(403).send({error:"Invalid origin"});
+    const {chats,memory}=req.body||{};
+    if(!Array.isArray(chats)||chats.length>50||typeof memory!=="string"||memory.length>4000)return reply.code(400).send({error:"Invalid history"});
+    mkdirSync(historyDir,{recursive:true,mode:0o700});
+    const file=historyFile(req);writeFileSync(file+".tmp",JSON.stringify({chats,memory}),{mode:0o600});renameSync(file+".tmp",file);
+    return {ok:true};
+  });
   fastify.post("/api/bobertgpt", { bodyLimit: MAX_BYTES }, async (req, reply) => {
     const key = process.env.GEMINI_API_KEY;
     if (!key) return reply.code(503).send({ error: "BobertGPT isn't configured yet. The administrator must set GEMINI_API_KEY in Azure." });
