@@ -280,6 +280,38 @@ export function installAuth(fastify) {
   fastify.get("/admin", async (req, reply) => reply.type("text/html; charset=utf-8").send(dashboard()));
   fastify.post("/admin/capacity",async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send("Invalid origin");const n=Number(req.body?.limit);if(!Number.isInteger(n)||n<1||n>10)return reply.code(400).send("Invalid limit");maxConcurrentPeople=n;db.maxConcurrentPeople=n;saveDb();return reply.redirect("/admin");});
 
+
+  const groupRooms=new Map();
+  const personName=id=>id==="admin"?"Administrator":db.users.find(u=>u.id===id)?.name;
+  const groups=()=>db.groups||(db.groups=[]);
+  fastify.get("/api/groups",async req=>{const id=currentUser(req).id;return groups().filter(g=>g.members.includes(id)).map(g=>({...g,members:g.members.map(id=>({id,name:personName(id)||"Former member"}))}));});
+  fastify.post("/api/groups",async(req,reply)=>{
+    if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});
+    const me=currentUser(req).id,q=req.body||{};
+    if(q.action==="create"){
+      const name=String(q.name||"").trim(),members=[...new Set([me,...(Array.isArray(q.members)?q.members:[])])];
+      if(!name||name.length>80||members.length<3||members.length>10||members.some(id=>!personName(id))||groups().length>=100)return reply.code(400).send({error:"Invalid group"});
+      const g={id:randomBytes(16).toString("hex"),name,members,owner:me};groups().push(g);saveDb();return g;
+    }
+    const g=groups().find(g=>g.id===q.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});
+    if(q.action==="leave"){g.members=g.members.filter(id=>id!==me);if(g.owner===me)g.owner=g.members[0];saveDb();return {ok:true};}
+    return reply.code(400).send({error:"Invalid action"});
+  });
+  fastify.get("/api/group-messages",async(req,reply)=>{const me=currentUser(req).id,g=groups().find(g=>g.id===req.query.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});return (db.groupMessages||[]).filter(m=>m.group===g.id).slice(-100);});
+  fastify.post("/api/group-messages",{bodyLimit:8192},async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});const me=currentUser(req),q=req.body||{},g=groups().find(g=>g.id===q.id&&g.members.includes(me.id)),body=String(q.text||"").trim();if(!g||!body||body.length>2000)return reply.code(400).send({error:"Invalid message"});const rows=db.groupMessages||(db.groupMessages=[]);if(rows.filter(m=>m.from===me.id&&m.at>Date.now()-10000).length>=10)return reply.code(429).send({error:"Slow down"});rows.push({group:g.id,from:me.id,name:me.name,text:body,at:Date.now(),id:randomBytes(16).toString("hex")});db.groupMessages=rows.slice(-5000);saveDb();return {ok:true};});
+  function pruneRooms(){for(const [id,r] of groupRooms){for(const [p,t] of Object.entries(r.joined))if(Date.now()-t>45000)delete r.joined[p];if(!Object.keys(r.joined).length)groupRooms.delete(id);}}
+  fastify.get("/api/group-calls",async req=>{pruneRooms();const me=currentUser(req).id;return [...groupRooms.values()].filter(r=>groups().some(g=>g.id===r.group&&g.members.includes(me))).map(r=>({id:r.id,group:r.group,mode:r.mode,joined:Object.keys(r.joined),signals:r.signals.filter(s=>s.to===me)}));});
+  fastify.post("/api/group-calls",{bodyLimit:65536},async(req,reply)=>{
+    if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});pruneRooms();const me=currentUser(req).id,q=req.body||{},g=groups().find(g=>g.id===q.group&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});
+    let r=groupRooms.get(g.id);
+    if(q.action==="join"){if(!r){if(!["voice","video"].includes(q.mode))return reply.code(400).send({error:"Invalid mode"});r={id:randomBytes(16).toString("hex"),group:g.id,mode:q.mode,joined:Object.create(null),signals:[]};groupRooms.set(g.id,r);}if(!r.joined[me]&&Object.keys(r.joined).length>=4)return reply.code(409).send({error:"Call is full"});r.joined[me]=Date.now();return {id:r.id,mode:r.mode};}
+    if(!r||r.id!==q.id||!r.joined[me])return reply.code(404).send({error:"Call unavailable"});
+    if(q.action==="leave"){delete r.joined[me];r.signals=r.signals.filter(s=>s.from!==me&&s.to!==me);}
+    else if(q.action==="keep")r.joined[me]=Date.now();
+    else if(q.action==="signal"){if(!r.joined[q.to]||q.to===me||!["offer","answer","ice","camera"].includes(q.kind)||JSON.stringify(q.data).length>50000)return reply.code(400).send({error:"Invalid signal"});r.signals.push({id:randomBytes(12).toString("hex"),from:me,to:q.to,kind:q.kind,data:q.data});r.signals=r.signals.slice(-300);}
+    else if(q.action==="ack")r.signals=r.signals.filter(s=>!(s.to===me&&s.id===q.signal));
+    else return reply.code(400).send({error:"Invalid action"});return {ok:true};
+  });
   const calls=new Map();
   function pruneCalls(){const now=Date.now();for(const [id,c] of calls)if(now-c.updated>(c.state==="ringing"?60000:120000))calls.delete(id);}
   fastify.get("/api/calls",async(req)=>{pruneCalls();const me=currentUser(req).id;return [...calls.values()].filter(c=>c.from===me||c.to===me).map(c=>({...c,name:c.from===me?c.toName:c.fromName}));});
