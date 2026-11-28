@@ -279,6 +279,26 @@ export function installAuth(fastify) {
   }));
   fastify.get("/admin", async (req, reply) => reply.type("text/html; charset=utf-8").send(dashboard()));
   fastify.post("/admin/capacity",async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send("Invalid origin");const n=Number(req.body?.limit);if(!Number.isInteger(n)||n<1||n>10)return reply.code(400).send("Invalid limit");maxConcurrentPeople=n;db.maxConcurrentPeople=n;saveDb();return reply.redirect("/admin");});
+
+  const calls=new Map();
+  function pruneCalls(){const now=Date.now();for(const [id,c] of calls)if(now-c.updated>(c.state==="ringing"?60000:120000))calls.delete(id);}
+  fastify.get("/api/calls",async(req)=>{pruneCalls();const me=currentUser(req).id;return [...calls.values()].filter(c=>c.from===me||c.to===me).map(c=>({...c,name:c.from===me?c.toName:c.fromName}));});
+  fastify.post("/api/calls",{bodyLimit:65536},async(req,reply)=>{
+    if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});
+    pruneCalls();const me=currentUser(req),q=req.body||{},now=Date.now();
+    const fail=(code,error)=>reply.code(code).send({error});
+    if(q.action==="start"){
+      const to=String(q.to||""),person=to==="admin"?{name:"Administrator"}:db.users.find(u=>u.id===to);
+      if(!person||to===me.id||!["voice","video"].includes(q.mode)||typeof q.sdp!=="string"||q.sdp.length>50000)return fail(400,"Invalid call");
+      if([...calls.values()].some(c=>[c.from,c.to].some(id=>id===me.id||id===to)&&c.state!=="ended"))return fail(409,"Someone is already in a call");
+      const c={id:randomBytes(16).toString("hex"),from:me.id,to,fromName:me.name||"Contact",toName:person.name,mode:q.mode,offer:q.sdp,answer:null,state:"ringing",updated:now};calls.set(c.id,c);return c;
+    }
+    const c=calls.get(String(q.id||""));if(!c||![c.from,c.to].includes(me.id))return fail(404,"Call unavailable");
+    if(q.action==="end"){c.state="ended";c.updated=now;return {ok:true};}
+    if(q.action==="answer"&&c.to===me.id&&c.state==="ringing"&&typeof q.sdp==="string"&&q.sdp.length<=50000){c.answer=q.sdp;c.state="connected";c.updated=now;return {ok:true};}
+    if(q.action==="keep"&&c.state==="connected"){c.updated=now;return {ok:true};}
+    return fail(409,"Call no longer available");
+  });
   fastify.get("/api/messages/unread",async(req)=>{const me=currentUser(req);const names=new Map([["admin","Administrator"],...db.users.map(u=>[u.id,u.name])]);const rows=(db.messages||[]).filter(m=>m.to===me.id&&!m.readAt);const counts=Object.create(null);for(const m of rows)counts[m.from]=(counts[m.from]||0)+1;return {me:me.id,total:rows.length,counts,latest:rows.slice(-20).map(m=>({id:m.id,from:m.from,name:names.get(m.from)||"Contact",at:m.at}))};});
   fastify.post("/api/messages/read",{bodyLimit:8192},async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});const me=currentUser(req),peer=String(req.body?.peer||""),ids=new Set(Array.isArray(req.body?.ids)?req.body.ids.slice(0,100):[]);let changed=false;for(const m of db.messages||[])if(m.to===me.id&&m.from===peer&&ids.has(m.id)&&!m.readAt){m.readAt=Date.now();changed=true;}if(changed)saveDb();return {ok:true};});
   fastify.get("/api/messages/people",async(req)=>{const me=currentUser(req);const online=activePeople();return {me:me.id,people:[{id:"admin",name:"Administrator"},...db.users.map(({id,name})=>({id,name}))].filter(u=>u.id!==me.id).map(u=>({...u,online:online.has(u.id)}))};});
