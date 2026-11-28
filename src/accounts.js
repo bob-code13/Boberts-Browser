@@ -312,8 +312,12 @@ export function installAuth(fastify) {
     else if(q.action==="ack")r.signals=r.signals.filter(s=>!(s.to===me&&s.id===q.signal));
     else return reply.code(400).send({error:"Invalid action"});return {ok:true};
   });
+  fastify.get("/api/group-unread",async req=>{const me=currentUser(req).id;return groups().filter(g=>g.members.includes(me)).map(g=>({id:g.id,name:g.name,count:(db.groupMessages||[]).filter(m=>m.group===g.id&&m.from!==me&&m.at>(g.read?.[me]||0)).length}));});
+  fastify.post("/api/group-read",async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});const me=currentUser(req).id,g=groups().find(g=>g.id===req.body?.id&&g.members.includes(me));if(!g)return reply.code(404).send({error:"Group unavailable"});(g.read||(g.read={}))[me]=Math.min(Date.now(),Number(req.body.at)||0);saveDb();return {ok:true};});
+  function recordCall(c){if(c.logged)return;c.logged=true;const rows=db.callHistory||(db.callHistory=[]);rows.push({id:c.id,from:c.from,to:c.to,fromName:c.fromName,toName:c.toName,mode:c.mode,at:c.created||c.updated,answered:!!c.answer});db.callHistory=rows.slice(-500);saveDb();}
+  fastify.get("/api/call-history",async req=>{const me=currentUser(req).id;return (db.callHistory||[]).filter(c=>c.from===me||c.to===me).slice(-30).reverse().map(c=>({name:c.from===me?c.toName:c.fromName,mode:c.mode,at:c.at,direction:c.from===me?"Outgoing":"Incoming",answered:c.answered}));});
   const calls=new Map();
-  function pruneCalls(){const now=Date.now();for(const [id,c] of calls)if(now-c.updated>(c.state==="ringing"?60000:120000))calls.delete(id);}
+  function pruneCalls(){const now=Date.now();for(const [id,c] of calls)if(now-c.updated>(c.state==="ringing"?60000:120000)){recordCall(c);calls.delete(id);}}
   fastify.get("/api/calls",async(req)=>{pruneCalls();const me=currentUser(req).id;return [...calls.values()].filter(c=>c.from===me||c.to===me).map(c=>({...c,name:c.from===me?c.toName:c.fromName}));});
   fastify.post("/api/calls",{bodyLimit:65536},async(req,reply)=>{
     if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});
@@ -323,10 +327,10 @@ export function installAuth(fastify) {
       const to=String(q.to||""),person=to==="admin"?{name:"Administrator"}:db.users.find(u=>u.id===to);
       if(!person||to===me.id||!["voice","video"].includes(q.mode)||typeof q.sdp!=="string"||q.sdp.length>50000)return fail(400,"Invalid call");
       if([...calls.values()].some(c=>[c.from,c.to].some(id=>id===me.id||id===to)&&c.state!=="ended"))return fail(409,"Someone is already in a call");
-      const c={id:randomBytes(16).toString("hex"),from:me.id,to,fromName:me.name||"Contact",toName:person.name,mode:q.mode,fromCamera:q.mode==="video",toCamera:q.mode==="video",offer:q.sdp,answer:null,state:"ringing",updated:now};calls.set(c.id,c);return c;
+      const c={id:randomBytes(16).toString("hex"),from:me.id,to,fromName:me.name||"Contact",toName:person.name,mode:q.mode,fromCamera:q.mode==="video",toCamera:q.mode==="video",offer:q.sdp,answer:null,state:"ringing",created:now,updated:now};calls.set(c.id,c);return c;
     }
     const c=calls.get(String(q.id||""));if(!c||![c.from,c.to].includes(me.id))return fail(404,"Call unavailable");
-    if(q.action==="camera"){if(c.from===me.id)c.fromCamera=q.on===true;else c.toCamera=q.on===true;return {ok:true};}if(q.action==="end"){c.state="ended";c.updated=now;return {ok:true};}
+    if(q.action==="camera"){if(c.from===me.id)c.fromCamera=q.on===true;else c.toCamera=q.on===true;return {ok:true};}if(q.action==="end"){recordCall(c);c.state="ended";c.updated=now;return {ok:true};}
     if(q.action==="answer"&&c.to===me.id&&c.state==="ringing"&&typeof q.sdp==="string"&&q.sdp.length<=50000){c.answer=q.sdp;c.state="connected";c.updated=now;return {ok:true};}
     if(q.action==="keep"&&c.state==="connected"){c.updated=now;return {ok:true};}
     return fail(409,"Call no longer available");
