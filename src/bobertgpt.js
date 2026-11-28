@@ -37,7 +37,8 @@ export function installBobertGPT(fastify) {
   });
   fastify.post("/api/bobertgpt", { bodyLimit: MAX_BYTES }, async (req, reply) => {
     const key = process.env.GEMINI_API_KEY;
-    if (!key) return reply.code(503).send({ error: "BobertGPT isn't configured yet. The administrator must set GEMINI_API_KEY in Azure." });
+    const groqKey=process.env.GROQ_API_KEY;
+    if(!key&&!groqKey)return reply.code(503).send({error:"Configure an AI API key in Azure."});
     const messages = req.body?.messages;
     if (!Array.isArray(messages) || !messages.length || messages.length > 24) return reply.code(400).send({error:"Send 1–24 messages."});
     let size = 0;
@@ -56,6 +57,17 @@ export function installBobertGPT(fastify) {
       contents.push({role:message.role,parts});
     }
     if (size > 10_000_000) return reply.code(413).send({error:"Conversation is too large. Start a new chat or use smaller files."});
+    const attachments=contents.some(m=>m.parts.some(p=>p.inlineData));
+    if(groqKey&&!attachments){
+      try{
+        const response=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+groqKey,"Content-Type":"application/json"},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:contents.map(m=>({role:m.role==="model"?"assistant":"user",content:m.parts.map(p=>p.text).join("\n")})),max_completion_tokens:4096}),signal:AbortSignal.timeout(25000)});
+        const result=await response.json();
+        const answer=result.choices?.[0]?.message?.content;
+        if(response.ok&&typeof answer==="string"&&answer.trim())return {answer:answer.trim(),provider:"Groq"};
+        fastify.log.warn({status:response.status},"Groq unavailable; trying Gemini");
+      }catch(err){fastify.log.warn({name:err?.name},"Groq unavailable; trying Gemini");}
+    }
+    if(!key)return reply.code(503).send({error:attachments?"Attachments require GEMINI_API_KEY.":"Groq unavailable; Gemini not configured."});
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 90000);
