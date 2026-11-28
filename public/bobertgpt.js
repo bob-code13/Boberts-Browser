@@ -7,7 +7,39 @@ async function heartbeat(){if(expired||document.hidden||(!busy&&Date.now()-lastI
 for(const event of ["pointerdown","keydown","touchstart"])document.addEventListener(event,()=>{lastInteraction=Date.now();void heartbeat();},{passive:true});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){lastInteraction=Date.now();void heartbeat();}});
 setInterval(heartbeat,30000);void heartbeat();
-function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");el.textContent=text;$("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});return el;}
+// Render a safe Markdown subset using DOM nodes, never model-supplied HTML.
+function inlineMarkdown(parent,text){
+  const pattern=/(\*\*[^*\n]+\*\*|__[^_\n]+__|\x60[^\x60\n]+\x60|\*[^*\n]+\*|\[[^\]\n]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<>]+)/g;
+  let pos=0;
+  for(const match of text.matchAll(pattern)){
+    parent.append(document.createTextNode(text.slice(pos,match.index)));
+    const s=match[0];let node;
+    if(s.startsWith("**")||s.startsWith("__")){node=document.createElement("strong");node.textContent=s.slice(2,-2);}
+    else if(s.startsWith("*")){node=document.createElement("em");node.textContent=s.slice(1,-1);}
+    else if(s.charCodeAt(0)===96){node=document.createElement("code");node.textContent=s.slice(1,-1);}
+    else {const link=s.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);node=document.createElement("a");node.href=link?link[2]:s;node.textContent=link?link[1]:s;node.target="_blank";node.rel="noopener noreferrer";}
+    parent.append(node);pos=match.index+s.length;
+  }
+  parent.append(document.createTextNode(text.slice(pos)));
+}
+function renderMarkdown(parent,text){
+  const lines=String(text).replace(/\r\n?/g,"\n").split("\n");
+  const cells=s=>s.trim().replace(/^\||\|$/g,"").split(/(?<!\\)\|/).map(x=>x.trim().replace(/\\\|/g,"|"));
+  const separator=s=>s&&s.includes("|")&&cells(s).every(x=>/^:?-{3,}:?$/.test(x));
+  const tableStart=i=>lines[i]?.includes("|")&&separator(lines[i+1]);
+  const listMatch=s=>s.match(/^\s*([-+*]|\d+\.)\s+(.+)$/);
+  for(let i=0;i<lines.length;){
+    const line=lines[i];
+    if(!line.trim()){i++;continue;}
+    if(/^\s*\x60{3}/.test(line)){const pre=document.createElement("pre"),code=document.createElement("code");let body=[];i++;while(i<lines.length&&!/^\s*\x60{3}/.test(lines[i]))body.push(lines[i++]);if(i<lines.length)i++;code.textContent=body.join("\n");pre.append(code);parent.append(pre);continue;}
+    if(tableStart(i)){const wrap=document.createElement("div"),table=document.createElement("table"),head=document.createElement("thead"),body=document.createElement("tbody");wrap.className="md-table";const headers=cells(line);const add=(target,values,tag)=>{const row=document.createElement("tr");for(const value of values){const cell=document.createElement(tag);inlineMarkdown(cell,value);row.append(cell);}target.append(row);};add(head,headers,"th");i+=2;while(i<lines.length&&lines[i].includes("|")&&lines[i].trim()){add(body,cells(lines[i++]),"td");}table.append(head,body);wrap.append(table);parent.append(wrap);continue;}
+    const heading=line.match(/^(#{1,6})\s+(.+)$/);if(heading){const el=document.createElement("h"+Math.min(heading[1].length+1,6));inlineMarkdown(el,heading[2]);parent.append(el);i++;continue;}
+    if(/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)){parent.append(document.createElement("hr"));i++;continue;}
+    const item=listMatch(line);if(item){const ordered=/\d/.test(item[1]),list=document.createElement(ordered?"ol":"ul");if(ordered)list.start=parseInt(item[1],10);while(i<lines.length){const m=listMatch(lines[i]);if(!m||/\d/.test(m[1])!==ordered)break;const li=document.createElement("li");inlineMarkdown(li,m[2]);list.append(li);i++;}parent.append(list);continue;}
+    const p=document.createElement("p");inlineMarkdown(p,line);parent.append(p);i++;
+  }
+}
+function bubble(text,mine){const el=document.createElement("div");el.className="bubble"+(mine?" mine":"");if(mine)el.textContent=text;else renderMarkdown(el,text);$("welcome")?.remove();chat.append(el);el.scrollIntoView({block:"end"});return el;}
 function showSources(el,sources,searchStatus){if(searchStatus==="unavailable"){const note=document.createElement("p");note.textContent="Live web search unavailable.";el.append(note);}if(!Array.isArray(sources)||!sources.length)return;const box=document.createElement("div");box.style.cssText="font-size:13px;margin-top:12px";box.textContent="Sources: ";sources.slice(0,4).forEach((s,i)=>{try{const url=new URL(s.url);if(!["https:","http:"].includes(url.protocol))return;const a=document.createElement("a");a.href=url.href;a.target="_blank";a.rel="noopener noreferrer";a.textContent="["+ (i+1)+"] "+String(s.title||url.hostname);a.style.display="block";box.append(a);}catch{}});el.append(box);}
 function title(){ $("chat-title").textContent=active?.title||"New chat"; }
 function render(){chat.innerHTML=active?.messages.length?"":welcome;for(const m of active?.messages||[])showSources(bubble(m.text,m.role==="user"),m.sources,m.searchStatus);title();sidebar();}
