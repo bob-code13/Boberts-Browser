@@ -11,7 +11,7 @@ const attempts = new Map();
 const sessionLifetime = 4 * 60 * 60 * 1000; // Require sign-in again after four hours.
 const idleTimeout = 30 * 60 * 1000; // Expire inactive sessions after 30 minutes.
 const presenceWindow = 2 * 60 * 1000; // Active browser heartbeat window.
-const maxConcurrentPeople = 3;
+let maxConcurrentPeople = 5;
 const activeSessions = new Map(); // One in-memory entry per signed-in browser session.
 const dataFile = process.env.ACCOUNT_DATA_FILE || "/home/boberts-browser/accounts.json";
 let db = { users: [], usage: {}, activity: [] };
@@ -22,6 +22,7 @@ try {
   if (error.code !== "ENOENT") throw error;
 }
 if (!Array.isArray(db.activity)) db.activity = [];
+if(Number.isInteger(db.maxConcurrentPeople)&&db.maxConcurrentPeople>=1&&db.maxConcurrentPeople<=10)maxConcurrentPeople=db.maxConcurrentPeople;
 function saveDb() {
   mkdirSync(dirname(dataFile), { recursive: true });
   const temp = dataFile + ".tmp";
@@ -109,11 +110,11 @@ function dashboard(message = "") {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard — Bobert's Browser</title><link rel="icon" type="image/png" href="/boberts-logo.png?v=2"><style>
   *{box-sizing:border-box}body{margin:0;background:#f6f8fc;color:#202124;font:15px system-ui,Arial,sans-serif}main{max-width:1050px;margin:40px auto;padding:0 20px}header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{font-size:30px}h2{font-size:20px}section{background:white;padding:24px;border-radius:16px;border:1px solid #e2e5ed;margin:22px 0;overflow:auto}input{display:block;width:100%;padding:12px;border:1px solid #cbd0db;border-radius:8px;margin:6px 0 16px;font:inherit}label{font-weight:600}button,.button{display:inline-block;background:#1967d2;color:white;border:0;border-radius:8px;padding:11px 16px;text-decoration:none;font:inherit;cursor:pointer}.danger{background:#b3261e}table{width:100%;border-collapse:collapse;min-width:560px}td,th{text-align:left;padding:12px;border-bottom:1px solid #e8ebf1}.status{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:#657182;white-space:nowrap}.status-dot{width:10px;height:10px;display:inline-block;border-radius:50%;background:#9ca3af;box-shadow:0 0 0 3px #f1f3f5}.status-dot.online{background:#20a451;box-shadow:0 0 0 3px #dcfce7}.status:has(.online){color:#15803d}p{color:#5f6368}.message{color:#b3261e}.logo{width:45px;vertical-align:middle;margin-right:12px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0 12px}.metric{background:#fff;border:1px solid #e2e5ed;border-radius:16px;padding:19px 22px}.metric-label{display:block;color:#647084;font-size:13px;font-weight:600;margin-bottom:10px}.metric-value{font-size:27px;font-weight:750;color:#182b49;line-height:1.2}.metric-note{display:block;color:#647084;font-size:12px;margin-top:8px}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.reset-trigger{display:block;margin-top:7px;font-size:13px;font-weight:600}.user-history{background:transparent;color:#1967d2;padding:4px 0;text-align:left;font-weight:650}.user-history:hover{text-decoration:underline}.history-value{max-width:440px;overflow-wrap:anywhere}.history-dialog{border:1px solid #d8dfeb;border-radius:16px;padding:26px;width:min(850px,calc(100vw - 32px));max-height:80vh;overflow:auto;box-shadow:0 20px 70px #172a4b35}.history-dialog::backdrop{background:#152a4670}.history-dialog table{min-width:480px}.history-dialog .close-history{float:right;background:#e8edf5;color:#24354e}.history-value{max-width:440px;overflow-wrap:anywhere}.reset-dialog{border:1px solid #d8dfeb;border-radius:16px;padding:26px;width:min(440px,calc(100vw - 32px));box-shadow:0 20px 70px #172a4b35}.reset-dialog::backdrop{background:#152a4670}.reset-dialog form{margin-top:15px}.reset-dialog .cancel{background:#e8edf5;color:#24354e;margin-left:8px}.add-account-panel{padding:0;overflow:hidden}.add-account-panel summary{list-style:none;cursor:pointer;padding:19px 24px;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:space-between}.add-account-panel summary::-webkit-details-marker{display:none}.add-account-panel summary:after{content:"+";font-size:24px;color:#1967d2}.add-account-panel[open] summary:after{content:"−"}.add-account-panel form{padding:0 24px 24px}.add-account-panel input{max-width:680px}.add-account-panel label{display:block;margin-top:10px}@media(max-width:700px){main{margin:20px auto}.summary-grid{grid-template-columns:1fr}.metric{padding:16px 18px}section{padding:18px}.add-account-panel summary{padding:18px}.add-account-panel form{padding:0 18px 18px}}</style></head><body><main><header><h1><img class="logo" src="/boberts-logo.png" alt="">Admin Dashboard</h1><a class="button" href="/">Back to Browser</a></header><p>Monitor account activity and manage access to Bobert's Browser.</p>${message ? '<p class="message">' + escapeHtml(message) + '</p>' : ''}
 <div class="summary-grid" aria-label="Browser usage overview">
-  <div class="metric"><span class="metric-label">People online</span><div class="metric-value" id="online-count">${activePeople().size} / 3</div><span class="metric-note">Maximum 3 active accounts</span></div>
+  <div class="metric"><span class="metric-label">People online</span><div class="metric-value" id="online-count">${activePeople().size} / ${maxConcurrentPeople}</div><span class="metric-note">Maximum ${maxConcurrentPeople} active accounts</span></div>
   <div class="metric"><span class="metric-label">Your usage</span><div class="metric-value" id="admin-usage">${adminHours} hours</div><span class="metric-note">Admin browsing time</span></div>
   <div class="metric"><span class="metric-label">Registered accounts</span><div class="metric-value">${db.users.length}</div><span class="metric-note">People with browser access</span></div>
 </div>
-<section><div class="section-heading"><h2>Account activity</h2><span class="metric-note">Automatically updates every 30 seconds</span></div><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Usage</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="5">No accounts yet.</td></tr>'}</tbody></table></section>
+<section><h2>Capacity</h2><form method="post" action="/admin/capacity"><label>Concurrent accounts (1–10)<input type="number" name="limit" min="1" max="10" value="${maxConcurrentPeople}" required></label><button>Save limit</button></form><p>Server process memory: ${Math.round(process.memoryUsage().rss/1048576)} MB</p></section><section><div class="section-heading"><h2>Account activity</h2><span class="metric-note">Automatically updates every 30 seconds</span></div><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Usage</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="5">No accounts yet.</td></tr>'}</tbody></table></section>
 <dialog id="history-dialog" class="history-dialog"><button type="button" class="close-history" id="history-close">Close</button><h2 id="history-title">Account history</h2><p>Searches entered in the browser and websites opened through its navigation controls. In-page clicks and searches inside external websites may not appear.</p><table><thead><tr><th>Time</th><th>Type</th><th>Search or website</th></tr></thead><tbody id="history-body"></tbody></table></dialog><dialog id="reset-dialog" class="reset-dialog"><h2>Reset password</h2><p id="reset-name"></p><form method="post" action="/admin/reset-password"><input type="hidden" id="reset-id" name="id"><label for="reset-new-password">New password (8–256 characters)</label><input id="reset-new-password" type="password" name="password" minlength="8" maxlength="256" autocomplete="new-password" required><button type="submit">Save password</button><button type="button" class="cancel" id="reset-cancel">Cancel</button></form></dialog><section class="add-account-panel"><details><summary>Add an account</summary><form action="/admin/add" method="post"><label for="name">Full name</label><input id="name" name="name" maxlength="80" required><label for="email">Email</label><input id="email" type="email" name="email" maxlength="200" required><label for="password">Password (8+ characters)</label><input id="password" type="password" name="password" minlength="8" maxlength="256" autocomplete="new-password" required><button type="submit">Create account</button></form></details></section></main><script>
   const historyDialog = document.getElementById("history-dialog");
   document.getElementById("history-close").addEventListener("click", () => historyDialog.close());
@@ -159,7 +160,7 @@ function dashboard(message = "") {
         element.style.color = online ? "#15803d" : "#657182";
       }
       document.getElementById("admin-usage").textContent = Number(data.adminHours).toFixed(2) + " hours";
-      document.getElementById("online-count").textContent = data.onlineCount + " / 3";
+      document.getElementById("online-count").textContent = data.onlineCount + " / " + data.limit;
     } catch { /* Keep previous status if network is unavailable. */ }
   }
   setInterval(refreshStatuses, 30000);
@@ -216,7 +217,7 @@ export function installAuth(fastify) {
     const people = activePeople();
     if (!people.has(signingInId) && people.size >= maxConcurrentPeople) {
       return reply.code(503).type("text/html; charset=utf-8")
-        .send(loginPage("Too many people are using Bobert's Browser right now (maximum 3). Please try again in a few minutes."));
+        .send(loginPage("Too many people are using Bobert's Browser right now (maximum " + maxConcurrentPeople + "). Please try again in a few minutes."));
     }
     reply.header("Set-Cookie", cookieFor(signingInId));
     return reply.redirect("/");
@@ -274,9 +275,13 @@ export function installAuth(fastify) {
     online: Object.fromEntries(db.users.map((u) => [u.id, isOnline(u.id)])),
     hours: Object.fromEntries(db.users.map((u) => [u.id, (db.usage[u.id]?.seconds || 0) / 3600])),
     adminHours: (db.usage.admin?.seconds || 0) / 3600,
-    onlineCount: activePeople().size
+    onlineCount: activePeople().size, limit:maxConcurrentPeople, rssMB:Math.round(process.memoryUsage().rss/1048576)
   }));
   fastify.get("/admin", async (req, reply) => reply.type("text/html; charset=utf-8").send(dashboard()));
+  fastify.post("/admin/capacity",async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send("Invalid origin");const n=Number(req.body?.limit);if(!Number.isInteger(n)||n<1||n>10)return reply.code(400).send("Invalid limit");maxConcurrentPeople=n;db.maxConcurrentPeople=n;saveDb();return reply.redirect("/admin");});
+  fastify.get("/api/messages/people",async(req)=>{const me=currentUser(req);const online=activePeople();return {me:me.id,people:[{id:"admin",name:"Administrator"},...db.users.map(({id,name})=>({id,name}))].filter(u=>u.id!==me.id).map(u=>({...u,online:online.has(u.id)}))};});
+  fastify.get("/api/messages",async(req,reply)=>{const me=currentUser(req),peer=String(req.query?.peer||"");if(peer===me.id||!(peer==="admin"||db.users.some(u=>u.id===peer)))return reply.code(400).send({error:"Invalid recipient"});return (db.messages||[]).filter(m=>(m.from===me.id&&m.to===peer)||(m.from===peer&&m.to===me.id)).slice(-100);});
+  fastify.post("/api/messages",{bodyLimit:8192},async(req,reply)=>{if(!validOrigin(req))return reply.code(403).send({error:"Invalid origin"});const me=currentUser(req),to=String(req.body?.to||""),body=String(req.body?.text||"").trim();if(to===me.id||!(to==="admin"||db.users.some(u=>u.id===to))||!body||body.length>2000)return reply.code(400).send({error:"Invalid message"});const now=Date.now();db.messages=Array.isArray(db.messages)?db.messages:[];if(db.messages.filter(m=>m.from===me.id&&m.at>now-10000).length>=10)return reply.code(429).send({error:"Slow down"});const m={id:randomBytes(16).toString("hex"),from:me.id,to,text:body,at:now};db.messages.push(m);db.messages=db.messages.slice(-5000);saveDb();return m;});
   fastify.post("/admin/add", async (req, reply) => {
     if (!validOrigin(req)) return reply.code(403).send("Invalid origin");
     const name = String(req.body?.name || "").trim();
@@ -311,6 +316,7 @@ export function installAuth(fastify) {
     const id = String(req.body?.id || "");
     db.users = db.users.filter((u) => u.id !== id);
     delete db.usage[id];
+    if(Array.isArray(db.messages))db.messages=db.messages.filter(m=>m.from!==id&&m.to!==id);
     for (const [nonce, session] of activeSessions) {
       if (session.id === id) activeSessions.delete(nonce);
     }
